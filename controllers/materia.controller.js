@@ -22,8 +22,6 @@ async function createMateria(req, res) {
     try {
         const { codigo, nombre, creditos, semestre, horarios, previas } = req.body;
 
-        console.log('Datos recibidos para crear materia:', req.body);
-
         // Crear la materia
         const materia = new Materia({ codigo, nombre, creditos, semestre, horarios });
         await materia.save(); // necesitamos el _id para las previas

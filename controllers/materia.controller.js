@@ -34,7 +34,8 @@ async function createMateria(req, res) {
                 const nuevaPrevia = new Previa({
                     materia: materia._id, // la materia que tiene la previa
                     previa: p.previa,     // la materia seleccionada como previa
-                    tipo: p.tipo
+                    tipo: p.tipo,
+                    'Aprobada': p.Aprobada || 'NO'
                 });
                 await nuevaPrevia.save();
                 materia.previas.push(nuevaPrevia._id);

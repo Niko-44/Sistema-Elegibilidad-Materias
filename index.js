@@ -41,12 +41,12 @@ function authenticateJWT(req, res, next) {
   const token = req.cookies.token;
 
   if (!token) {
-    return res.status(403).send("Acceso denegado");
+    return res.redirect("/login"); // 👉 redirige si no hay token
   }
 
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
     if (err) {
-      return res.status(403).send("Token no válido");
+      return res.redirect("/login"); // 👉 redirige si el token es inválido o expiró
     }
     req.user = user;
     next();

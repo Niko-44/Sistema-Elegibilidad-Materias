@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inicio - Materias</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary-color: #f8f9fa;
+            --text-color: #333;
+            --text-light: #6c757d;
+            --error-color: #dc3545;
+            --success-color: #28a745;
+            --border-radius: 8px;
+            --box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            padding: 20px;
+            color: var(--text-color);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            margin: 0;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-badge {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .logout-btn {
+            background: none;
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            text-decoration: underline;
+            font-size: 0.9rem;
+        }
+
+        .admin-options {
+            margin-bottom: 30px;
+            padding: 15px;
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            display: none;
+        }
+
+        .admin-title {
+            margin-bottom: 15px;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .admin-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .admin-btn {
+            padding: 10px 15px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: 500;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .admin-btn:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .admin-btn.delete {
+            background-color: var(--error-color);
+        }
+
+        .admin-btn.delete:hover {
+            background-color: #bd2130;
+        }
+
+        .materias-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .materia {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--box-shadow);
+            transition: var(--transition);
+        }
+
+        .materia:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .materia-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .materia-codigo {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            background-color: #f0f2f5;
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+
+        .materia-title {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+            color: var(--primary-color);
+        }
+
+        .materia-details {
+            margin-bottom: 15px;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .materia-details div {
+            margin-bottom: 5px;
+        }
+
+        .previas-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-color);
+        }
+
+        .previas-list {
+            margin-left: 15px;
+        }
+
+        .previas-list li {
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-light);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #ddd;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .admin-buttons {
+                flex-direction: column;
+            }
+
+            .admin-btn {
+                width: 100%;
+            }
+
+            .materias-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>Listado de Materias</h1>
+        <div class="user-info">
+            <span id="userRole" class="user-badge">Cargando...</span>
+            <button class="logout-btn" id="logoutBtn">Cerrar sesión</button>
+        </div>
+    </div>
+
+    <div id="adminOptions" class="admin-options">
+        <h3 class="admin-title">Opciones de Administrador</h3>
+        <div class="admin-buttons">
+            <button class="admin-btn" id="createBtn">
+                <i class="fas fa-plus"></i> Crear Materia
+            </button>
+            <button class="admin-btn" id="editBtn">
+                <i class="fas fa-edit"></i> Editar Materia
+            </button>
+            <button class="admin-btn delete" id="deleteBtn">
+                <i class="fas fa-trash"></i> Eliminar Materia
+            </button>
+        </div>
+    </div>
+
+    <div id="materiasContainer" class="materias-container">
+        <div class="empty-state">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Cargando materias...</p>
+        </div>
+    </div>
+
+    <script>
+        // Obtener el token del localStorage (en lugar de cookies)
+        const token = localStorage.getItem('token');
+        let userRole = '';
+
+        // Decodificar el token JWT
+        function parseJwt(token) {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (e) {
+                console.error('Error decoding token:', e);
+                return null;
+            }
+        }
+
+        // Cargar materias desde el servidor
+        async function loadMaterias() {
+            try {
+                const res = await fetch('/materias', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!res.ok) {
+                    throw new Error('Error al cargar las materias');
+                }
+
+                const materias = await res.json();
+                const container = document.getElementById('materiasContainer');
+
+                if (materias.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-book-open"></i>
+                            <p>No hay materias disponibles</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = '';
+
+                materias.forEach(m => {
+                    const materiaEl = document.createElement('div');
+                    materiaEl.classList.add('materia');
+
+                    materiaEl.innerHTML = `
+                        <div class="materia-header">
+                            <div>
+                                <h3 class="materia-title">${m.nombre}</h3>
+                                <div class="materia-codigo">${m.codigo}</div>
+                            </div>
+                        </div>
+                        <div class="materia-details">
+                            <div><strong>Semestre:</strong> ${m.semestre}</div>
+                            <div><strong>Créditos:</strong> ${m.creditos}</div>
+                        </div>
+                    `;
+
+                    if (m.previas && m.previas.length > 0) {
+                        const previasList = document.createElement('div');
+                        previasList.innerHTML = `<div class="previas-title">Prerequisitos:</div>`;
+
+                        const ul = document.createElement('ul');
+                        ul.classList.add('previas-list');
+
+                        m.previas.forEach(p => {
+                            ul.innerHTML += `<li>${p.tipo} de ${p.materia || 'materia'}</li>`;
+                        });
+
+                        previasList.appendChild(ul);
+                        materiaEl.appendChild(previasList);
+                    }
+
+                    container.appendChild(materiaEl);
+                });
+            } catch (error) {
+                console.error('Error cargando materias:', error);
+                document.getElementById('materiasContainer').innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Error al cargar las materias</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Verificar rol de usuario y mostrar opciones de administrador
+        function checkAdminRole() {
+            if (!token) {
+                console.error('No se encontró token de autenticación');
+                document.getElementById('userRole').textContent = 'Invitado';
+                return;
+            }
+
+            const decodedToken = parseJwt(token);
+            if (!decodedToken) {
+                console.error('Token inválido');
+                return;
+            }
+
+            // Verificar diferentes posibles nombres para el rol
+            userRole = decodedToken.rol || decodedToken.role || decodedToken.tipo || '';
+            document.getElementById('userRole').textContent = userRole;
+
+            // Mostrar opciones de administrador si el usuario tiene el rol adecuado
+            // Considerar diferentes posibles nombres para el rol de administrador
+            const adminRoles = ['admin', 'administrador', 'Administrator', 'superadmin'];
+
+            if (adminRoles.includes(userRole.toLowerCase())) {
+                document.getElementById('adminOptions').style.display = 'block';
+            }
+        }
+
+        // Configurar el botón de cerrar sesión
+        document.getElementById('logoutBtn').addEventListener('click', function () {
+            localStorage.removeItem('token');
+            window.location.href = '/login';
+        });
+
+        // Configurar botones de administrador
+        document.getElementById('createBtn').addEventListener('click', function () {
+            // Redirige a la página de creación de materias
+            window.location.href = '/createMateria.html';
+        });
+
+        document.getElementById('editBtn').addEventListener('click', function () {
+            alert('Función de editar materia');
+            // Aquí iría la lógica para editar una materia existente
+        });
+
+        document.getElementById('deleteBtn').addEventListener('click', function () {
+            alert('Función de eliminar materia');
+            // Aquí iría la lógica para eliminar una materia
+        });
+
+        // Inicializar la página
+        document.addEventListener('DOMContentLoaded', function () {
+            checkAdminRole();
+            loadMaterias();
+        });
+    </script>
+</body>
+
+</html>

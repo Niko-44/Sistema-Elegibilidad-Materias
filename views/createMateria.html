@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Materia</title>
+</head>
+
+<body>
+    <h1>Crear Materia</h1>
+
+    <form id="materiaForm">
+        <label>Código:</label>
+        <input type="text" name="codigo" required><br><br>
+
+        <label>Nombre:</label>
+        <input type="text" name="nombre" required><br><br>
+
+        <label>Créditos:</label>
+        <input type="number" name="creditos" required><br><br>
+
+        <label>Semestre:</label>
+        <input type="number" name="semestre" required><br><br>
+
+        <h3>Horarios</h3>
+        <div id="horariosContainer">
+            <div class="horario">
+                <input type="text" name="dia" placeholder="Día" required>
+                <input type="time" name="horaInicio" required>
+                <input type="time" name="horaFin" required>
+                <button type="button" class="removeHorarioBtn">Eliminar</button>
+            </div>
+        </div>
+        <button type="button" id="addHorarioBtn">Agregar Horario</button><br><br>
+
+        <h3>Previas</h3>
+        <div id="previasContainer">
+            <!-- Aquí se llenarán dinámicamente con previas existentes -->
+        </div><br>
+
+        <button type="submit">Crear Materia</button>
+    </form>
+
+    <script>
+        const token = localStorage.getItem('token');
+
+        // Cargar previas desde el backend
+        async function loadPrevias() {
+            const res = await fetch('/previas', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const previas = await res.json();
+            const container = document.getElementById('previasContainer');
+            previas.forEach(p => {
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.name = 'previas';
+                checkbox.value = p._id;
+                container.appendChild(checkbox);
+                const label = document.createElement('label');
+                label.textContent = `${p.tipo} de ${p.materia.nombre || p.materia}`;
+                container.appendChild(label);
+                container.appendChild(document.createElement('br'));
+            });
+        }
+
+        // Agregar más horarios dinámicamente
+        document.getElementById('addHorarioBtn').addEventListener('click', () => {
+            const container = document.getElementById('horariosContainer');
+            const div = document.createElement('div');
+            div.classList.add('horario');
+            div.innerHTML = `
+        <input type="text" name="dia" placeholder="Día" required>
+        <input type="time" name="horaInicio" required>
+        <input type="time" name="horaFin" required>
+        <button type="button" class="removeHorarioBtn">Eliminar</button>
+    `;
+            container.appendChild(div);
+        });
+
+        // Eliminar horario
+        document.getElementById('horariosContainer').addEventListener('click', e => {
+            if (e.target.classList.contains('removeHorarioBtn')) {
+                e.target.parentElement.remove();
+            }
+        });
+
+        // Enviar formulario
+        document.getElementById('materiaForm').addEventListener('submit', async e => {
+            e.preventDefault();
+
+            const form = e.target;
+            const codigo = form.codigo.value;
+            const nombre = form.nombre.value;
+            const creditos = parseInt(form.creditos.value);
+            const semestre = parseInt(form.semestre.value);
+
+            // Recolectar horarios
+            const horariosDivs = document.querySelectorAll('.horario');
+            const horarios = Array.from(horariosDivs).map(div => ({
+                dia: div.querySelector('input[name="dia"]').value,
+                horaInicio: div.querySelector('input[name="horaInicio"]').value,
+                horaFin: div.querySelector('input[name="horaFin"]').value
+            }));
+
+            // Recolectar previas
+            const previas = Array.from(document.querySelectorAll('input[name="previas"]:checked')).map(cb => cb.value);
+
+            const res = await fetch('/materias', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ codigo, nombre, creditos, semestre, horarios, previas })
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                alert('Materia creada correctamente');
+                form.reset();
+            } else {
+                alert('Error: ' + (data.message || 'No se pudo crear'));
+            }
+        });
+
+        // Inicializar
+        loadPrevias();
+    </script>
+</body>
+
+</html>

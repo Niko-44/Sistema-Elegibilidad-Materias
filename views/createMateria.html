@@ -4,65 +4,429 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crear Materia</title>
+    <title>Crear Nueva Materia</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --primary-dark: #2980b9;
+            --secondary-color: #2ecc71;
+            --secondary-dark: #27ae60;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --gray-color: #6c757d;
+            --light-gray: #e9ecef;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 30px;
+        }
+
+        h1 {
+            color: var(--dark-color);
+            margin-bottom: 25px;
+            text-align: center;
+            font-weight: 700;
+            position: relative;
+            padding-bottom: 15px;
+        }
+
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background-color: var(--primary-color);
+            border-radius: 2px;
+        }
+
+        h3 {
+            color: var(--primary-dark);
+            margin: 20px 0 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--light-gray);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark-color);
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="time"],
+        select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            transition: var(--transition);
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--light-gray);
+        }
+
+        .horario {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            gap: 10px;
+            align-items: center;
+            padding: 15px;
+            background-color: var(--light-color);
+            border-radius: var(--border-radius);
+            margin-bottom: 15px;
+            transition: var(--transition);
+        }
+
+        .horario:hover {
+            background-color: #e3f2fd;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--secondary-dark);
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+            padding: 8px 12px;
+        }
+
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+
+        .btn-sm {
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+
+        .btn i {
+            margin-right: 8px;
+        }
+
+        .previa-item {
+            display: grid;
+            grid-template-columns: auto 1fr 120px;
+            gap: 15px;
+            align-items: center;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            background-color: var(--light-color);
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+        }
+
+        .previa-item:hover {
+            background-color: #e8f5e9;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 30px;
+            color: var(--gray-color);
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: #ddd;
+        }
+
+        @media (max-width: 768px) {
+            .grid-container {
+                grid-template-columns: 1fr;
+            }
+
+            .horario {
+                grid-template-columns: 1fr;
+            }
+
+            .previa-item {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .container {
+                padding: 20px;
+            }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: var(--border-radius);
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: opacity 0.3s, transform 0.3s;
+            box-shadow: var(--box-shadow);
+        }
+
+        .notification.success {
+            background-color: var(--secondary-color);
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .notification.error {
+            background-color: var(--danger-color);
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .fade-out {
+            opacity: 0 !important;
+            transform: translateY(-20px) !important;
+        }
+    </style>
 </head>
 
 <body>
-    <h1>Crear Materia</h1>
+    <div class="container">
+        <h1><i class="fas fa-book"></i> Crear Nueva Materia</h1>
 
-    <form id="materiaForm">
-        <label>Código:</label>
-        <input type="text" name="codigo" required><br><br>
+        <form id="materiaForm">
+            <div class="card">
+                <h3><i class="fas fa-info-circle"></i> Información Básica</h3>
+                <div class="grid-container">
+                    <div class="form-group">
+                        <label for="codigo"><i class="fas fa-barcode"></i> Código:</label>
+                        <input type="text" id="codigo" name="codigo" required placeholder="Ej: MAT101">
+                    </div>
 
-        <label>Nombre:</label>
-        <input type="text" name="nombre" required><br><br>
+                    <div class="form-group">
+                        <label for="nombre"><i class="fas fa-font"></i> Nombre:</label>
+                        <input type="text" id="nombre" name="nombre" required placeholder="Ej: Matemáticas Avanzadas">
+                    </div>
 
-        <label>Créditos:</label>
-        <input type="number" name="creditos" required><br><br>
+                    <div class="form-group">
+                        <label for="creditos"><i class="fas fa-star"></i> Créditos:</label>
+                        <input type="number" id="creditos" name="creditos" required min="1" max="10">
+                    </div>
 
-        <label>Semestre:</label>
-        <input type="number" name="semestre" required><br><br>
-
-        <h3>Horarios</h3>
-        <div id="horariosContainer">
-            <div class="horario">
-                <input type="text" name="dia" placeholder="Día" required>
-                <input type="time" name="horaInicio" required>
-                <input type="time" name="horaFin" required>
-                <button type="button" class="removeHorarioBtn">Eliminar</button>
+                    <div class="form-group">
+                        <label for="semestre"><i class="fas fa-calendar-alt"></i> Semestre:</label>
+                        <input type="number" id="semestre" name="semestre" required min="1" max="12">
+                    </div>
+                </div>
             </div>
-        </div>
-        <button type="button" id="addHorarioBtn">Agregar Horario</button><br><br>
 
-        <h3>Previas</h3>
-        <div id="previasContainer">
-            <!-- Aquí se llenarán dinámicamente con previas existentes -->
-        </div><br>
+            <div class="card">
+                <h3><i class="fas fa-clock"></i> Horarios</h3>
+                <div id="horariosContainer">
+                    <div class="horario">
+                        <input type="text" name="dia" placeholder="Día (Ej: Lunes)" required>
+                        <input type="time" name="horaInicio" required>
+                        <input type="time" name="horaFin" required>
+                        <button type="button" class="btn btn-danger removeHorarioBtn">
+                            <i class="fas fa-trash"></i> Eliminar
+                        </button>
+                    </div>
+                </div>
+                <button type="button" id="addHorarioBtn" class="btn btn-secondary">
+                    <i class="fas fa-plus"></i> Agregar Horario
+                </button>
+            </div>
 
-        <button type="submit">Crear Materia</button>
-    </form>
+            <div class="card">
+                <h3><i class="fas fa-link"></i> Materias Previas</h3>
+                <div id="previasContainer">
+                    <div class="empty-state">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Cargando materias disponibles...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button type="button" id="cancelBtn" class="btn btn-danger">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-check"></i> Crear Materia
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div id="notification" class="notification"></div>
 
     <script>
         const token = localStorage.getItem('token');
 
-        // Cargar previas desde el backend
+        // Mostrar notificación
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+
+            setTimeout(() => {
+                notification.classList.add('fade-out');
+                setTimeout(() => {
+                    notification.className = 'notification';
+                }, 300);
+            }, 3000);
+        }
+
+        // Cargar todas las materias como previas disponibles
         async function loadPrevias() {
-            const res = await fetch('/previas', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const previas = await res.json();
-            const container = document.getElementById('previasContainer');
-            previas.forEach(p => {
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.name = 'previas';
-                checkbox.value = p._id;
-                container.appendChild(checkbox);
-                const label = document.createElement('label');
-                label.textContent = `${p.tipo} de ${p.materia.nombre || p.materia}`;
-                container.appendChild(label);
-                container.appendChild(document.createElement('br'));
-            });
+            try {
+                const res = await fetch('/materias', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!res.ok) throw new Error('Error al cargar las materias');
+
+                const materias = await res.json();
+                const container = document.getElementById('previasContainer');
+
+                if (materias.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <p>No hay materias disponibles para seleccionar como previas.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = '';
+
+                materias.forEach(materia => {
+                    const div = document.createElement('div');
+                    div.className = 'previa-item';
+
+                    // Checkbox para seleccionar la materia
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.name = 'previaCheckbox';
+                    checkbox.value = materia._id;
+                    checkbox.id = `previa-${materia._id}`;
+
+                    // Label con el nombre de la materia
+                    const label = document.createElement('label');
+                    label.textContent = `${materia.codigo} - ${materia.nombre}`;
+                    label.htmlFor = `previa-${materia._id}`;
+
+                    // Select para elegir tipo: Examen o Curso
+                    const select = document.createElement('select');
+                    select.name = 'previaTipo';
+                    ['Examen', 'Curso'].forEach(op => {
+                        const option = document.createElement('option');
+                        option.value = op;
+                        option.textContent = op;
+                        select.appendChild(option);
+                    });
+
+                    div.appendChild(checkbox);
+                    div.appendChild(label);
+                    div.appendChild(select);
+
+                    container.appendChild(div);
+                });
+            } catch (error) {
+                console.error('Error al cargar materias:', error);
+                const container = document.getElementById('previasContainer');
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Error al cargar las materias. Intente nuevamente.</p>
+                    </div>
+                `;
+            }
         }
 
         // Agregar más horarios dinámicamente
@@ -71,24 +435,71 @@
             const div = document.createElement('div');
             div.classList.add('horario');
             div.innerHTML = `
-        <input type="text" name="dia" placeholder="Día" required>
-        <input type="time" name="horaInicio" required>
-        <input type="time" name="horaFin" required>
-        <button type="button" class="removeHorarioBtn">Eliminar</button>
-    `;
+                <input type="text" name="dia" placeholder="Día (Ej: Martes)" required>
+                <input type="time" name="horaInicio" required>
+                <input type="time" name="horaFin" required>
+                <button type="button" class="btn btn-danger removeHorarioBtn">
+                    <i class="fas fa-trash"></i> Eliminar
+                </button>
+            `;
             container.appendChild(div);
         });
 
         // Eliminar horario
         document.getElementById('horariosContainer').addEventListener('click', e => {
-            if (e.target.classList.contains('removeHorarioBtn')) {
-                e.target.parentElement.remove();
+            if (e.target.classList.contains('removeHorarioBtn') ||
+                e.target.closest('.removeHorarioBtn')) {
+                const btn = e.target.classList.contains('removeHorarioBtn') ?
+                    e.target : e.target.closest('.removeHorarioBtn');
+                btn.parentElement.remove();
             }
         });
+
+        // Cancelar formulario
+        document.getElementById('cancelBtn').addEventListener('click', () => {
+            if (confirm('¿Está seguro que desea cancelar? Se perderán todos los datos ingresados.')) {
+                window.location.href = '/inicio'; // o la URL apropiada
+            }
+        });
+
+        // Validar formulario antes de enviar
+        function validateForm() {
+            const codigo = document.getElementById('codigo').value;
+            const nombre = document.getElementById('nombre').value;
+            const creditos = document.getElementById('creditos').value;
+            const semestre = document.getElementById('semestre').value;
+
+            if (!codigo || !nombre || !creditos || !semestre) {
+                showNotification('Por favor, complete todos los campos obligatorios', 'error');
+                return false;
+            }
+
+            // Validar horarios
+            const horariosDivs = document.querySelectorAll('.horario');
+            for (let div of horariosDivs) {
+                const dia = div.querySelector('input[name="dia"]').value;
+                const horaInicio = div.querySelector('input[name="horaInicio"]').value;
+                const horaFin = div.querySelector('input[name="horaFin"]').value;
+
+                if (!dia || !horaInicio || !horaFin) {
+                    showNotification('Por favor, complete todos los campos de horario', 'error');
+                    return false;
+                }
+
+                if (horaInicio >= horaFin) {
+                    showNotification('La hora de inicio debe ser anterior a la hora de fin', 'error');
+                    return false;
+                }
+            }
+
+            return true;
+        }
 
         // Enviar formulario
         document.getElementById('materiaForm').addEventListener('submit', async e => {
             e.preventDefault();
+
+            if (!validateForm()) return;
 
             const form = e.target;
             const codigo = form.codigo.value;
@@ -104,29 +515,50 @@
                 horaFin: div.querySelector('input[name="horaFin"]').value
             }));
 
-            // Recolectar previas
-            const previas = Array.from(document.querySelectorAll('input[name="previas"]:checked')).map(cb => cb.value);
-
-            const res = await fetch('/materias', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ codigo, nombre, creditos, semestre, horarios, previas })
+            // Recolectar previas con tipo
+            const previas = Array.from(document.querySelectorAll('input[name="previaCheckbox"]:checked')).map(cb => {
+                const tipo = cb.parentElement.querySelector('select[name="previaTipo"]').value;
+                return { previa: cb.value, tipo };
             });
 
-            const data = await res.json();
-            if (res.ok) {
-                alert('Materia creada correctamente');
-                form.reset();
-            } else {
-                alert('Error: ' + (data.message || 'No se pudo crear'));
+            try {
+                const res = await fetch('/materias', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ codigo, nombre, creditos, semestre, horarios, previas })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    showNotification('Materia creada correctamente');
+                    setTimeout(() => {
+                        form.reset();
+                        loadPrevias();
+                    }, 1000);
+                } else {
+                    showNotification('Error: ' + (data.message || 'No se pudo crear la materia'), 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Error de conexión. Intente nuevamente.', 'error');
             }
         });
 
         // Inicializar
-        loadPrevias();
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!token) {
+                showNotification('Debe iniciar sesión para acceder a esta página', 'error');
+                setTimeout(() => {
+                    window.location.href = '/login';
+                }, 2000);
+                return;
+            }
+
+            loadPrevias();
+        });
     </script>
 </body>
 

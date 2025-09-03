@@ -4,7 +4,11 @@ const Previa = require('../models/previa.model');
 // Listar todas las materias con sus previas
 async function getAllMaterias(req, res) {
     try {
-        const materias = await Materia.find().populate('previas');
+        const materias = await Materia.find()
+            .populate({
+                path: 'previas',
+                populate: { path: 'previa', select: 'nombre' } // solo traemos el nombre
+            });
         res.json(materias);
     } catch (error) {
         console.error(error);
@@ -12,19 +16,47 @@ async function getAllMaterias(req, res) {
     }
 }
 
+
 // Crear una materia
 async function createMateria(req, res) {
-    const { codigo, nombre, creditos, semestre, horarios, previas } = req.body;
-
     try {
-        const materia = new Materia({ codigo, nombre, creditos, semestre, horarios, previas });
+        const { codigo, nombre, creditos, semestre, horarios, previas } = req.body;
+
+        console.log('Datos recibidos para crear materia:', req.body);
+
+        // Crear la materia
+        const materia = new Materia({ codigo, nombre, creditos, semestre, horarios });
+        await materia.save(); // necesitamos el _id para las previas
+
+        // Crear objetos Previa para cada materia seleccionada
+        if (previas && previas.length > 0) {
+            for (const p of previas) {
+                if (!p.previa) continue;
+
+                const nuevaPrevia = new Previa({
+                    materia: materia._id, // la materia que tiene la previa
+                    previa: p.previa,     // la materia seleccionada como previa
+                    tipo: p.tipo
+                });
+                await nuevaPrevia.save();
+                materia.previas.push(nuevaPrevia._id);
+            }
+        }
+
         await materia.save();
-        res.status(201).json({ message: 'Materia creada', materia });
+
+        res.status(201).json({
+            message: 'Materia creada correctamente',
+            materia
+        });
+
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error al crear materia' });
+        res.status(500).json({ message: 'Error al crear materia', error });
     }
 }
+
+
 
 // Editar / actualizar una materia
 async function updateMateria(req, res) {

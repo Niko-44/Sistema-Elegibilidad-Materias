@@ -320,8 +320,10 @@
                         ul.classList.add('previas-list');
 
                         m.previas.forEach(p => {
-                            ul.innerHTML += `<li>${p.tipo} de ${p.materia || 'materia'}</li>`;
+                            const nombrePrevia = p.previa ? p.previa.nombre : 'Materia eliminada';
+                            ul.innerHTML += `<li>${p.tipo} de ${nombrePrevia}</li>`;
                         });
+
 
                         previasList.appendChild(ul);
                         materiaEl.appendChild(previasList);

@@ -609,6 +609,12 @@
                 <p>Cargando materias...</p>
             </div>
         </div>
+
+        <!-- Agrega esto donde quieras mostrar el historial -->
+        <div id="historialContainer" style="margin-top:30px;"></div>
+        <button class="admin-btn" id="verHistorialBtn" style="margin-top:10px;" onclick="window.location.href='/historialMateriasEstudiante.html'">
+            <i class="fas fa-history"></i> Ver historial de materias
+        </button>
     </div>
 
     <div id="notification" class="notification"></div>
@@ -748,6 +754,13 @@
                             </button>
                         </div>
                         ` : ''}
+                        ${userRole && userRole.toLowerCase() === 'estudiante' ? `
+<div class="materia-actions">
+    <button class="action-btn" style="background: var(--success-color); color: white;" onclick="inscribirmeMateria('${m._id}')">
+        <i class="fas fa-check-circle"></i> Inscribirme
+    </button>
+</div>
+` : ''}
                     </div>
                 `;
 
@@ -838,6 +851,23 @@
             }
         }
 
+        async function inscribirmeMateria(id) {
+            try {
+                const res = await fetch(`/estudiantes/inscribir/${id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.message || 'Error al inscribirse');
+                showNotification('Inscripción exitosa');
+            } catch (err) {
+                showNotification('No se pudo inscribir: ' + err.message, 'error');
+            }
+        }
+
         // Configurar event listeners
         function setupEventListeners() {
             // Búsqueda y filtros
@@ -854,6 +884,25 @@
             // Botón de crear materia
             document.getElementById('createBtn').addEventListener('click', function () {
                 window.location.href = '/createMateria.html';
+            });
+
+            document.getElementById('verHistorialBtn').addEventListener('click', async () => {
+                try {
+                    const res = await fetch('/estudiantes/historial', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const materias = await res.json();
+                    const container = document.getElementById('historialContainer');
+                    if (!materias.length) {
+                        container.innerHTML = '<p>No te has inscrito a ninguna materia.</p>';
+                        return;
+                    }
+                    container.innerHTML = '<h3>Historial de materias inscritas</h3><ul>' +
+                        materias.map(m => `<li>${m.materia?.nombre || 'Materia eliminada'} - Estado: ${m.estado}</li>`).join('') +
+                        '</ul>';
+                } catch (err) {
+                    showNotification('No se pudo cargar el historial', 'error');
+                }
             });
         }
 

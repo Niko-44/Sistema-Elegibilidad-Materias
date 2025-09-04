@@ -1822,3 +1822,4 @@ node_modules/mongoose/lib/helpers/indexes/decorateDiscriminatorIndexOptions.js
 node_modules/mongoose/lib/helpers/discriminator/getSchemaDiscriminatorByValue.js
 node_modules/mongodb/lib/cmap/auth/mongodb_oidc/automated_callback_workflow.js.map
 node_modules/mongoose/lib/helpers/discriminator/checkEmbeddedDiscriminatorKeyProjection.js
+node_modules/cookie-signature/.npmignore

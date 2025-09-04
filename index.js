@@ -13,6 +13,7 @@ const app = express();
 const userRoutes = require("./routes/users.routes");
 const materiaRoutes = require('./routes/materia.routes');
 const previaRoutes = require('./routes/previa.routes');
+const estudianteRoutes = require('./routes/estudiante.routes'); 
 
 // Obtener las variables de entorno
 const mongoURI = process.env.MONGO_URI;
@@ -35,6 +36,7 @@ app.use(express.static(path.join(__dirname, "views")));
 app.use("/users", userRoutes);
 app.use('/materias', materiaRoutes);
 app.use('/previas', previaRoutes);
+app.use('/estudiantes', estudianteRoutes); // 👈 agrega esta línea
 
 // Middleware para proteger rutas (verificar JWT)
 function authenticateJWT(req, res, next) {
@@ -73,6 +75,10 @@ app.get("/createMateria.html", authenticateJWT, (req, res) => {
 
 app.get("/createMateria.html", authenticateJWT, (req, res) => {
   res.sendFile(path.join(__dirname, "views", "editMateria.html"));
+});
+
+app.get("/historialMateriasEstudiante.html", authenticateJWT, (req, res) => {
+  res.sendFile(path.join(__dirname, "views", "historialMateriasEstudiante.html"));
 });
 
 // Iniciar el servidor

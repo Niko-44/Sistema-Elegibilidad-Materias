@@ -119,8 +119,20 @@ async function deleteMateria(req, res) {
     const { id } = req.params;
 
     try {
+        // Verificar si la materia está asociada como previa en otras materias
+        const previasAsociadas = await Previa.find({ previa: id });
+        if (previasAsociadas.length > 0) {
+            return res.status(400).json({
+                message: 'No se puede eliminar la materia porque es previa de otra materia.'
+            });
+        }
+
         const materia = await Materia.findByIdAndDelete(id);
         if (!materia) return res.status(404).json({ message: 'Materia no encontrada' });
+
+        // Eliminar previas propias
+        await Previa.deleteMany({ materia: id });
+
         res.json({ message: 'Materia eliminada' });
     } catch (error) {
         console.error(error);

@@ -60,17 +60,59 @@ async function createMateria(req, res) {
 // Editar / actualizar una materia
 async function updateMateria(req, res) {
     const { id } = req.params;
-    const updateData = req.body;
+    const { codigo, nombre, creditos, semestre, horarios, previas } = req.body;
 
     try {
-        const materia = await Materia.findByIdAndUpdate(id, updateData, { new: true });
+        // Actualizar campos básicos
+        const materia = await Materia.findById(id);
         if (!materia) return res.status(404).json({ message: 'Materia no encontrada' });
+
+        materia.codigo = codigo;
+        materia.nombre = nombre;
+        materia.creditos = creditos;
+        materia.semestre = semestre;
+        materia.horarios = horarios;
+
+        // Eliminar previas antiguas
+        await Previa.deleteMany({ materia: materia._id });
+
+        // Crear nuevas previas y guardar sus IDs
+        let nuevasPrevias = [];
+        if (previas && previas.length > 0) {
+            for (const p of previas) {
+                const previaObj = new Previa({
+                    materia: materia._id,
+                    previa: p.previa,
+                    tipo: p.tipo
+                });
+                await previaObj.save();
+                nuevasPrevias.push(previaObj._id);
+            }
+        }
+        materia.previas = nuevasPrevias;
+
+        await materia.save();
+
         res.json({ message: 'Materia actualizada', materia });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error al actualizar materia' });
+        res.status(500).json({ message: 'Error al actualizar materia', error });
     }
 }
+
+async function getMateriaById(req, res){
+    try {
+        const materia = await Materia.findById(req.params.id)
+            .populate({
+                path: 'previas',
+                populate: { path: 'previa', select: 'nombre codigo' }
+            });
+        if (!materia) return res.status(404).json({ message: 'Materia no encontrada' });
+        res.json(materia);
+    } catch (error) {
+        res.status(500).json({ message: 'Error al obtener la materia', error });
+    }
+};
 
 // Eliminar una materia
 async function deleteMateria(req, res) {
@@ -90,5 +132,6 @@ module.exports = {
     getAllMaterias,
     createMateria,
     updateMateria,
-    deleteMateria
+    deleteMateria,
+    getMateriaById
 };

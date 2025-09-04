@@ -71,6 +71,10 @@ app.get("/createMateria.html", authenticateJWT, (req, res) => {
   res.sendFile(path.join(__dirname, "views", "createMateria.html"));
 });
 
+app.get("/createMateria.html", authenticateJWT, (req, res) => {
+  res.sendFile(path.join(__dirname, "views", "editMateria.html"));
+});
+
 // Iniciar el servidor
 app.listen(port, () => {
   console.log(`Servidor corriendo en http://localhost:${port}`);

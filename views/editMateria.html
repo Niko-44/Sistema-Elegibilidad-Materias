@@ -1,13 +1,12 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crear Nueva Materia</title>
+    <title>Editar Materia</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
+     <style>
         :root {
             --primary-color: #3498db;
             --primary-dark: #2980b9;
@@ -147,6 +146,7 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            width:150px;
         }
 
         .btn-primary {
@@ -273,86 +273,65 @@
         }
     </style>
 </head>
-
 <body>
     <div class="container">
-        <h1><i class="fas fa-book"></i> Crear Nueva Materia</h1>
-
+        <h1><i class="fas fa-edit"></i> Editar Materia</h1>
         <form id="materiaForm">
+            <!-- Información básica -->
             <div class="card">
                 <h3><i class="fas fa-info-circle"></i> Información Básica</h3>
                 <div class="grid-container">
                     <div class="form-group">
                         <label for="codigo"><i class="fas fa-barcode"></i> Código:</label>
-                        <input type="text" id="codigo" name="codigo" required placeholder="Ej: MAT101">
+                        <input type="text" id="codigo" name="codigo" required>
                     </div>
-
                     <div class="form-group">
                         <label for="nombre"><i class="fas fa-font"></i> Nombre:</label>
-                        <input type="text" id="nombre" name="nombre" required placeholder="Ej: Matemáticas Avanzadas">
+                        <input type="text" id="nombre" name="nombre" required>
                     </div>
-
                     <div class="form-group">
                         <label for="creditos"><i class="fas fa-star"></i> Créditos:</label>
                         <input type="number" id="creditos" name="creditos" required>
                     </div>
-
                     <div class="form-group">
                         <label for="semestre"><i class="fas fa-calendar-alt"></i> Semestre:</label>
                         <input type="number" id="semestre" name="semestre" required min="1" max="6">
                     </div>
                 </div>
             </div>
-
+            <!-- Horarios -->
             <div class="card">
                 <h3><i class="fas fa-clock"></i> Horarios</h3>
-                <div id="horariosContainer">
-                    <div class="horario">
-                        <input type="text" name="dia" placeholder="Día (Ej: Lunes)" required>
-                        <input type="time" name="horaInicio" required>
-                        <input type="time" name="horaFin" required>
-                        <button type="button" class="btn btn-danger removeHorarioBtn">
-                            <i class="fas fa-trash"></i> Eliminar
-                        </button>
-                    </div>
-                </div>
+                <div id="horariosContainer"></div>
                 <button type="button" id="addHorarioBtn" class="btn btn-secondary">
                     <i class="fas fa-plus"></i> Agregar Horario
                 </button>
             </div>
-
+            <!-- Previas -->
             <div class="card">
                 <h3><i class="fas fa-link"></i> Materias Previas</h3>
-                <div id="previasContainer">
-                    <div class="empty-state">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <p>Cargando materias disponibles...</p>
-                    </div>
-                </div>
+                <div id="previasContainer"></div>
             </div>
-
             <div class="actions">
                 <button type="button" id="cancelBtn" class="btn btn-danger">
                     <i class="fas fa-times"></i> Cancelar
                 </button>
                 <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-check"></i> Crear Materia
+                    <i class="fas fa-save"></i> Guardar Cambios
                 </button>
             </div>
         </form>
     </div>
-
     <div id="notification" class="notification"></div>
-
     <script>
         const token = localStorage.getItem('token');
+        const urlParams = new URLSearchParams(window.location.search);
+        const materiaId = urlParams.get('id');
 
-        // Mostrar notificación
         function showNotification(message, type = 'success') {
             const notification = document.getElementById('notification');
             notification.textContent = message;
             notification.className = `notification ${type}`;
-
             setTimeout(() => {
                 notification.classList.add('fade-out');
                 setTimeout(() => {
@@ -361,75 +340,138 @@
             }, 3000);
         }
 
-        // Cargar todas las materias como previas disponibles
-        async function loadPrevias() {
+        // Cargar datos de la materia
+        async function loadMateria() {
+            try {
+                const res = await fetch(`/materias/${materiaId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error('Error al cargar la materia');
+                const materia = await res.json();
+
+                document.getElementById('codigo').value = materia.codigo;
+                document.getElementById('nombre').value = materia.nombre;
+                document.getElementById('creditos').value = materia.creditos;
+                document.getElementById('semestre').value = materia.semestre;
+
+                // Horarios
+                const horariosContainer = document.getElementById('horariosContainer');
+                horariosContainer.innerHTML = '';
+                (materia.horarios || []).forEach(h => {
+                    const div = document.createElement('div');
+                    div.classList.add('horario');
+                    div.innerHTML = `
+                        <input type="text" name="dia" value="${h.dia}" required>
+                        <input type="time" name="horaInicio" value="${h.horaInicio}" required>
+                        <input type="time" name="horaFin" value="${h.horaFin}" required>
+                        <button type="button" class="btn btn-danger removeHorarioBtn">
+                            <i class="fas fa-trash"></i> Eliminar
+                        </button>
+                    `;
+                    horariosContainer.appendChild(div);
+                });
+
+                // Previas
+                await loadPrevias(materia.previas || []);
+            } catch (error) {
+                showNotification('Error al cargar la materia', 'error');
+            }
+        }
+
+        // Cargar todas las materias para seleccionar previas y mostrar las actuales
+        async function loadPrevias(previasActuales) {
             try {
                 const res = await fetch('/materias', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-
                 if (!res.ok) throw new Error('Error al cargar las materias');
-
                 const materias = await res.json();
                 const container = document.getElementById('previasContainer');
-
-                if (materias.length === 0) {
-                    container.innerHTML = `
-                        <div class="empty-state">
-                            <i class="fas fa-inbox"></i>
-                            <p>No hay materias disponibles para seleccionar como previas.</p>
-                        </div>
-                    `;
-                    return;
-                }
-
                 container.innerHTML = '';
 
-                materias.forEach(materia => {
+                // Mostrar previas actuales con opción de eliminar
+                previasActuales.forEach((previa, idx) => {
                     const div = document.createElement('div');
                     div.className = 'previa-item';
-
-                    // Checkbox para seleccionar la materia
-                    const checkbox = document.createElement('input');
-                    checkbox.type = 'checkbox';
-                    checkbox.name = 'previaCheckbox';
-                    checkbox.value = materia._id;
-                    checkbox.id = `previa-${materia._id}`;
-
-                    // Label con el nombre de la materia
-                    const label = document.createElement('label');
-                    label.textContent = `${materia.codigo} - ${materia.nombre}`;
-                    label.htmlFor = `previa-${materia._id}`;
-
-                    // Select para elegir tipo: Examen o Curso
-                    const select = document.createElement('select');
-                    select.name = 'previaTipo';
-                    ['Examen', 'Curso'].forEach(op => {
-                        const option = document.createElement('option');
-                        option.value = op;
-                        option.textContent = op;
-                        select.appendChild(option);
-                    });
-
-                    div.appendChild(checkbox);
-                    div.appendChild(label);
-                    div.appendChild(select);
-
+                    let previaInfo = '';
+                    if (previa.previa && previa.previa.nombre) {
+                        previaInfo = `<strong>${previa.tipo}</strong> de <span style="color:var(--primary-dark);font-weight:500">${previa.previa.codigo} - ${previa.previa.nombre}</span>`;
+                    } else {
+                        previaInfo = `<span style="color:var(--danger-color);font-weight:500">Materia previa eliminada</span>`;
+                    }
+                    div.innerHTML = `
+                        ${previaInfo}
+                        <button type="button" class="btn btn-danger btn-sm removePreviaBtn" data-idx="${idx}">
+                            <i class="fas fa-trash"></i> Eliminar Previa
+                        </button>
+                    `;
                     container.appendChild(div);
                 });
+
+                // Agregar selector para nuevas previas
+                const selectDiv = document.createElement('div');
+                selectDiv.className = 'previa-item';
+                // Select de materia
+                const materiasFiltradas = materias.filter(m => m._id !== materiaId); // Filtra la materia actual
+
+                // Select de materia
+                const selectMateria = document.createElement('select');
+                selectMateria.name = 'nuevaPreviaMateria';
+                materiasFiltradas.forEach(m => {
+                    const option = document.createElement('option');
+                    option.value = m._id;
+                    option.textContent = `${m.codigo} - ${m.nombre}`;
+                    selectMateria.appendChild(option);
+                });
+                // Select tipo
+                const selectTipo = document.createElement('select');
+                selectTipo.name = 'nuevaPreviaTipo';
+                ['Examen', 'Curso'].forEach(op => {
+                    const option = document.createElement('option');
+                    option.value = op;
+                    option.textContent = op;
+                    selectTipo.appendChild(option);
+                });
+                // Botón agregar
+                const addBtn = document.createElement('button');
+                addBtn.type = 'button';
+                addBtn.className = 'btn btn-secondary btn-sm';
+                addBtn.innerHTML = '<i class="fas fa-plus"></i> Agregar Previa';
+                addBtn.onclick = () => {
+                    const previaId = selectMateria.value;
+                    const tipo = selectTipo.value;
+                    // Evitar duplicados
+                    if (previasActuales.some(p => p.previa && (p.previa._id === previaId || p.previa === previaId) && p.tipo === tipo)) {
+                        showNotification('Ya existe esa previa', 'error');
+                        return;
+                    }
+                    // Buscar la materia seleccionada
+                    const materiaSeleccionada = materias.find(m => m._id === previaId);
+                    previasActuales.push({ previa: materiaSeleccionada, tipo });
+                    loadPrevias(previasActuales);
+                };
+                selectDiv.appendChild(selectMateria);
+                selectDiv.appendChild(selectTipo);
+                selectDiv.appendChild(addBtn);
+                container.appendChild(selectDiv);
+
+                // Eliminar previa
+                container.querySelectorAll('.removePreviaBtn').forEach(btn => {
+                    btn.onclick = () => {
+                        const idx = parseInt(btn.getAttribute('data-idx'));
+                        previasActuales.splice(idx, 1);
+                        loadPrevias(previasActuales);
+                    };
+                });
+
+                // Guardar las previas en el formulario para el submit
+                container.dataset.previas = JSON.stringify(previasActuales);
             } catch (error) {
-                console.error('Error al cargar materias:', error);
-                const container = document.getElementById('previasContainer');
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <p>Error al cargar las materias. Intente nuevamente.</p>
-                    </div>
-                `;
+                showNotification('Error al cargar materias previas', 'error');
             }
         }
 
-        // Agregar más horarios dinámicamente
+        // Agregar horario dinámicamente
         document.getElementById('addHorarioBtn').addEventListener('click', () => {
             const container = document.getElementById('horariosContainer');
             const div = document.createElement('div');
@@ -455,59 +497,52 @@
             }
         });
 
-        // Cancelar formulario
+        // Cancelar
         document.getElementById('cancelBtn').addEventListener('click', () => {
-            if (confirm('¿Está seguro que desea cancelar? Se perderán todos los datos ingresados.')) {
-                window.location.href = '/inicio'; // o la URL apropiada
+            if (confirm('¿Desea cancelar la edición?')) {
+                window.location.href = '/inicio';
             }
         });
 
-        // Validar formulario antes de enviar
+        // Validar formulario
         function validateForm() {
             const codigo = document.getElementById('codigo').value;
             const nombre = document.getElementById('nombre').value;
             const creditos = document.getElementById('creditos').value;
             const semestre = document.getElementById('semestre').value;
-
             if (!codigo || !nombre || !creditos || !semestre) {
-                showNotification('Por favor, complete todos los campos obligatorios', 'error');
+                showNotification('Complete todos los campos obligatorios', 'error');
                 return false;
             }
-
             // Validar horarios
             const horariosDivs = document.querySelectorAll('.horario');
             for (let div of horariosDivs) {
                 const dia = div.querySelector('input[name="dia"]').value;
                 const horaInicio = div.querySelector('input[name="horaInicio"]').value;
                 const horaFin = div.querySelector('input[name="horaFin"]').value;
-
                 if (!dia || !horaInicio || !horaFin) {
-                    showNotification('Por favor, complete todos los campos de horario', 'error');
+                    showNotification('Complete todos los campos de horario', 'error');
                     return false;
                 }
-
                 if (horaInicio >= horaFin) {
                     showNotification('La hora de inicio debe ser anterior a la hora de fin', 'error');
                     return false;
                 }
             }
-
             return true;
         }
 
-        // Enviar formulario
+        // Guardar cambios
         document.getElementById('materiaForm').addEventListener('submit', async e => {
             e.preventDefault();
-
             if (!validateForm()) return;
-
             const form = e.target;
             const codigo = form.codigo.value;
             const nombre = form.nombre.value;
             const creditos = parseInt(form.creditos.value);
             const semestre = parseInt(form.semestre.value);
 
-            // Recolectar horarios
+            // Horarios
             const horariosDivs = document.querySelectorAll('.horario');
             const horarios = Array.from(horariosDivs).map(div => ({
                 dia: div.querySelector('input[name="dia"]').value,
@@ -515,51 +550,53 @@
                 horaFin: div.querySelector('input[name="horaFin"]').value
             }));
 
-            // Recolectar previas con tipo
-            const previas = Array.from(document.querySelectorAll('input[name="previaCheckbox"]:checked')).map(cb => {
-                const tipo = cb.parentElement.querySelector('select[name="previaTipo"]').value;
-                return { previa: cb.value, tipo };
-            });
+            // Previas
+            const previasContainer = document.getElementById('previasContainer');
+            let previas = [];
+            try {
+                previas = JSON.parse(previasContainer.dataset.previas || '[]');
+            } catch { previas = []; }
+
+            // Transformar previas para enviar solo el ID y tipo
+            const previasToSend = previas.map(p => ({
+                previa: p.previa._id || p.previa, // si es objeto, usa _id; si es string, usa directa
+                tipo: p.tipo
+            }));
 
             try {
-                const res = await fetch('/materias', {
-                    method: 'POST',
+                const res = await fetch(`/materias/${materiaId}`, {
+                    method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
                     },
-                    body: JSON.stringify({ codigo, nombre, creditos, semestre, horarios, previas })
+                    body: JSON.stringify({ codigo, nombre, creditos, semestre, horarios, previas: previasToSend })
                 });
-
                 const data = await res.json();
                 if (res.ok) {
-                    showNotification('Materia creada correctamente');
+                    showNotification('Materia actualizada correctamente');
                     setTimeout(() => {
-                        form.reset();
-                        loadPrevias();
+                        window.location.href = '/inicio';
                     }, 1000);
                 } else {
-                    showNotification('Error: ' + (data.message || 'No se pudo crear la materia'), 'error');
+                    showNotification('Error: ' + (data.message || 'No se pudo actualizar la materia'), 'error');
                 }
             } catch (error) {
-                console.error('Error:', error);
-                showNotification('Error de conexión. Intente nuevamente.', 'error');
+                showNotification('Error de conexión', 'error');
             }
         });
 
         // Inicializar
         document.addEventListener('DOMContentLoaded', () => {
             if (!token) {
-                showNotification('Debe iniciar sesión para acceder a esta página', 'error');
+                showNotification('Debe iniciar sesión', 'error');
                 setTimeout(() => {
                     window.location.href = '/login';
                 }, 2000);
                 return;
             }
-
-            loadPrevias();
+            loadMateria();
         });
     </script>
 </body>
-
 </html>

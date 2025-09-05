@@ -102,69 +102,6 @@
       box-shadow: 0 10px 20px rgba(67, 97, 238, 0.2);
     }
 
-    /* Calendar Controls */
-    .calendar-controls {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      background: var(--bg-white);
-      padding: 15px 20px;
-      border-radius: var(--border-radius);
-      box-shadow: var(--box-shadow);
-    }
-
-    .week-selector {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .week-btn {
-      background: var(--primary-light);
-      color: var(--primary-color);
-      border: none;
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: var(--transition);
-    }
-
-    .week-btn:hover {
-      background: var(--primary-color);
-      color: white;
-    }
-
-    .week-text {
-      font-weight: 500;
-      min-width: 180px;
-      text-align: center;
-    }
-
-    .view-options {
-      display: flex;
-      gap: 10px;
-    }
-
-    .view-btn {
-      padding: 8px 16px;
-      background: var(--bg-light);
-      border: none;
-      border-radius: var(--border-radius-sm);
-      cursor: pointer;
-      font-weight: 500;
-      transition: var(--transition);
-    }
-
-    .view-btn.active {
-      background: var(--primary-color);
-      color: white;
-    }
-
     /* Calendar Table */
     .calendar-wrapper {
       background: var(--bg-white);
@@ -252,38 +189,9 @@
     }
 
     @keyframes pulse {
-      0% {
-        opacity: 0.9;
-      }
-
-      50% {
-        opacity: 0.7;
-      }
-
-      100% {
-        opacity: 0.9;
-      }
-    }
-
-    /* Solapamiento Styles */
-    .solapamiento-group {
-      position: relative;
-      width: 100%;
-      height: 100%;
-    }
-
-    .solapamiento-item {
-      position: absolute;
-      top: 1px;
-      bottom: 1px;
-      padding: 8px;
-      color: white;
-      font-size: 0.7rem;
-      border-radius: var(--border-radius-sm);
-      overflow: hidden;
-      cursor: pointer;
-      transition: var(--transition);
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      0% { opacity: 0.9; }
+      50% { opacity: 0.7; }
+      100% { opacity: 0.9; }
     }
 
     /* Legend */
@@ -364,7 +272,7 @@
       .calendar-table th:first-child {
         width: 60px;
       }
-
+      
       .materia-block {
         padding: 4px;
         font-size: 0.7rem;
@@ -378,25 +286,20 @@
         gap: 15px;
         padding: 20px;
       }
-
-      .calendar-controls {
-        flex-direction: column;
-        gap: 15px;
-      }
-
+      
       .calendar-table {
         font-size: 0.8rem;
       }
-
+      
       .time-cell {
         font-size: 0.75rem;
       }
-
+      
       .materia-block {
         font-size: 0.65rem;
         padding: 2px;
       }
-
+      
       .legend-items {
         flex-direction: column;
         gap: 10px;
@@ -423,13 +326,8 @@
     }
 
     @keyframes spin {
-      0% {
-        transform: rotate(0deg);
-      }
-
-      100% {
-        transform: rotate(360deg);
-      }
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
 
     /* Notification */
@@ -492,23 +390,6 @@
       </button>
     </div>
 
-    <div class="calendar-controls">
-      <div class="week-selector">
-        <button class="week-btn" id="prevWeek">
-          <i class="fas fa-chevron-left"></i>
-        </button>
-        <div class="week-text" id="currentWeek">Semana actual</div>
-        <button class="week-btn" id="nextWeek">
-          <i class="fas fa-chevron-right"></i>
-        </button>
-      </div>
-
-      <div class="view-options">
-        <button class="view-btn active" id="viewWeek">Vista Semana</button>
-        <button class="view-btn" id="viewDay">Vista Día</button>
-      </div>
-    </div>
-
     <div id="conflictContainer"></div>
 
     <div class="calendar-wrapper">
@@ -550,8 +431,6 @@
 
     const dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
     const tbody = document.querySelector("#calendarBody");
-    const currentWeekEl = document.getElementById("currentWeek");
-    let currentWeekOffset = 0;
     const conflictContainer = document.getElementById("conflictContainer");
     const tooltip = document.getElementById("tooltip");
 
@@ -596,25 +475,12 @@
       }
     }
 
-    // Actualizar el texto de la semana actual
-    function updateWeekText() {
-      const today = new Date();
-      const startOfWeek = new Date(today);
-      startOfWeek.setDate(today.getDate() - today.getDay() + 1 + (7 * currentWeekOffset));
-      const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(startOfWeek.getDate() + 4);
-
-      const options = { day: 'numeric', month: 'short' };
-      currentWeekEl.textContent =
-        `${startOfWeek.toLocaleDateString('es-ES', options)} - ${endOfWeek.toLocaleDateString('es-ES', options)}`;
-    }
-
     // Mostrar notificación
     function showNotification(message, type = 'success') {
       const notification = document.getElementById('notification');
       notification.textContent = message;
       notification.className = `notification ${type}`;
-
+      
       setTimeout(() => {
         notification.className = 'notification';
       }, 3000);
@@ -635,9 +501,9 @@
     // Detectar y mostrar conflictos de horario
     function detectAndDisplayConflicts(conflicts) {
       conflictContainer.innerHTML = '';
-
+      
       if (conflicts.length === 0) return;
-
+      
       const conflictPanel = document.createElement('div');
       conflictPanel.className = 'conflict-panel';
       conflictPanel.innerHTML = `
@@ -654,24 +520,24 @@
           `).join('')}
         </ul>
       `;
-
+      
       conflictContainer.appendChild(conflictPanel);
     }
 
     // Función para calcular solapamientos y organizar visualmente
     function organizeTimeBlocks(blocks) {
       if (blocks.length === 0) return [];
-
+      
       // Ordenar bloques por hora de inicio
       blocks.sort((a, b) => {
         const [ha, ma] = a.horaInicio.split(':').map(Number);
         const [hb, mb] = b.horaInicio.split(':').map(Number);
         return (ha * 60 + ma) - (hb * 60 + mb);
       });
-
+      
       const groups = [];
       let currentGroup = [];
-
+      
       for (const block of blocks) {
         if (currentGroup.length === 0) {
           currentGroup.push(block);
@@ -679,7 +545,7 @@
           const lastBlock = currentGroup[currentGroup.length - 1];
           const [hLast, mLast] = lastBlock.horaFin.split(':').map(Number);
           const [hCurrent, mCurrent] = block.horaInicio.split(':').map(Number);
-
+          
           // Si el bloque actual comienza antes de que termine el último, hay solapamiento
           if (hCurrent * 60 + mCurrent < hLast * 60 + mLast) {
             currentGroup.push(block);
@@ -689,11 +555,11 @@
           }
         }
       }
-
+      
       if (currentGroup.length > 0) {
         groups.push(currentGroup);
       }
-
+      
       return groups;
     }
 
@@ -729,14 +595,13 @@
 
         // Regenerar las filas
         generateTimeRows(materiasUsuario);
-
+        
         // Limpiar leyenda
         document.getElementById("legendItems").innerHTML = '';
-
+        
         // Mapa de colores para materias
         const colorMap = new Map();
-        const usedColors = new Set();
-
+        
         // Paleta de colores atractivos
         const colorPalette = [
           '#4361ee', '#7209b7', '#f72585', '#4cc9f0', '#560bad',
@@ -748,7 +613,7 @@
           const colorIndex = index % colorPalette.length;
           const color = colorPalette[colorIndex];
           colorMap.set(materia._id, color);
-
+          
           // Añadir a la leyenda
           const legendItem = document.createElement('div');
           legendItem.className = 'legend-item';
@@ -761,12 +626,12 @@
 
         // Almacenar conflictos para mostrarlos después
         const allConflicts = [];
-
+        
         // Procesar cada día
         dias.forEach(dia => {
           // Recolectar todos los bloques para este día
           const dayBlocks = [];
-
+          
           materiasUsuario.forEach(materia => {
             materia.horarios.forEach(horario => {
               if (horario.dia === dia) {
@@ -780,10 +645,10 @@
               }
             });
           });
-
+          
           // Organizar bloques por solapamiento
           const blockGroups = organizeTimeBlocks(dayBlocks);
-
+          
           // Procesar cada grupo de bloques
           blockGroups.forEach((group, groupIndex) => {
             if (group.length > 1) {
@@ -795,55 +660,55 @@
               };
               allConflicts.push(conflict);
             }
-
+            
             // Calcular el ancho y posición de cada bloque en el grupo
             const groupWidth = 100 / group.length;
-
+            
             group.forEach((block, blockIndex) => {
               const [hi, mi] = block.horaInicio.split(":").map(Number);
               const [hf, mf] = block.horaFin.split(":").map(Number);
-
+              
               // Calcular posición vertical
               const startMinute = hi * 60 + mi;
               const endMinute = hf * 60 + mf;
               const duration = endMinute - startMinute;
-
+              
               // Encontrar la fila correspondiente
               for (let h = hi; h < hf; h++) {
                 const horaStr = h.toString().padStart(2, "0") + ":00";
                 const td = document.querySelector(`td[data-dia="${dia}"][data-hora="${horaStr}"]`);
-
+                
                 if (td) {
                   const bloque = document.createElement("div");
                   bloque.classList.add("materia-block");
                   if (group.length > 1) {
                     bloque.classList.add("choque");
                   }
-
+                  
                   bloque.style.background = block.color;
                   bloque.dataset.materiaId = block.materiaId;
                   bloque.dataset.materiaNombre = block.materiaNombre;
-
+                  
                   bloque.innerHTML = `
                     <div class="materia-name">${block.materiaNombre}</div>
                     <div class="materia-time">${block.horaInicio} - ${block.horaFin}</div>
                   `;
-
+                  
                   // Posicionamiento para bloques solapados
                   if (group.length > 1) {
                     bloque.style.width = `${groupWidth}%`;
                     bloque.style.left = `${blockIndex * groupWidth}%`;
                   }
-
+                  
                   // Posicionamiento vertical
                   const cellStartMinute = h * 60;
                   const top = Math.max(0, (startMinute - cellStartMinute) / 60 * 100);
                   const bottom = Math.min(100, (endMinute - cellStartMinute) / 60 * 100);
                   const height = bottom - top;
-
+                  
                   bloque.style.top = `${top}%`;
                   bloque.style.height = `${height}%`;
-
+                  
                   // Eventos para tooltip
                   bloque.addEventListener('mouseover', (e) => {
                     const content = `
@@ -853,59 +718,31 @@
                     `;
                     showTooltip(content, e.clientX, e.clientY);
                   });
-
+                  
                   bloque.addEventListener('mouseout', hideTooltip);
-
+                  
                   td.appendChild(bloque);
                 }
               }
             });
           });
         });
-
+        
         // Mostrar panel de conflictos si los hay
         detectAndDisplayConflicts(allConflicts);
-
+        
         if (allConflicts.length > 0) {
           showNotification(`Se detectaron ${allConflicts.length} conflicto(s) de horario`, "error");
         }
-
+        
       } catch (err) {
         console.error("Error cargando materias:", err);
         showNotification("Error al cargar el calendario: " + err.message, "error");
       }
     }
 
-    // Navegación entre semanas
-    document.getElementById("prevWeek").addEventListener("click", () => {
-      currentWeekOffset--;
-      updateWeekText();
-      cargarMaterias();
-    });
-
-    document.getElementById("nextWeek").addEventListener("click", () => {
-      currentWeekOffset++;
-      updateWeekText();
-      cargarMaterias();
-    });
-
-    // Cambio de vista
-    document.getElementById("viewWeek").addEventListener("click", () => {
-      document.getElementById("viewWeek").classList.add("active");
-      document.getElementById("viewDay").classList.remove("active");
-      // Lógica para cambiar a vista semana
-    });
-
-    document.getElementById("viewDay").addEventListener("click", () => {
-      document.getElementById("viewDay").classList.add("active");
-      document.getElementById("viewWeek").classList.remove("active");
-      // Lógica para cambiar a vista día
-    });
-
-    
-    updateWeekText();
+    // Inicializar
     cargarMaterias();
   </script>
 </body>
-
 </html>

@@ -43,9 +43,11 @@ async function loginUser(req, res) {
         }
 
         // Crear token JWT
-        const token = jwt.sign({ userId: user._id, rol: user.rol }, process.env.JWT_SECRET, {
-            expiresIn: "1h",
-        });
+        const token = jwt.sign(
+            { userId: user._id, rol: user.rol, nombre: user.nombre }, // <-- agrega el nombre aquí
+            process.env.JWT_SECRET,
+            { expiresIn: "1h" }
+        );
 
         // Enviar token en cookie además de JSON
         res

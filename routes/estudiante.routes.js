@@ -21,4 +21,7 @@ router.post('/inscribir/:id', authMiddleware, estudianteController.inscribirMate
 // Historial de materias inscritas
 router.get('/historial', authMiddleware, estudianteController.historialMaterias);
 
+// Obtener créditos aprobados
+router.get('/creditosAprobados', authMiddleware, estudianteController.getCreditosAprobados);
+
 module.exports = router;

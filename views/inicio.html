@@ -793,7 +793,7 @@
         }
 
         // Verificar rol de usuario y mostrar opciones de administrador
-        function checkAdminRole() {
+        async function checkAdminRole() {
             if (!token) {
                 showNotification('Debe iniciar sesión para acceder', 'error');
                 setTimeout(() => {
@@ -808,13 +808,25 @@
                 return;
             }
 
-            // Verificar diferentes posibles nombres para el rol
             userRole = decodedToken.rol || decodedToken.role || decodedToken.tipo || '';
-            document.getElementById('userRole').innerHTML = `<i class="fas fa-user-circle"></i> ${userRole}`;
+            const nombreUsuario = decodedToken.nombre || decodedToken.name || '';
 
-            // Mostrar opciones de administrador si el usuario tiene el rol adecuado
-            const adminRoles = ['admin', 'administrador', 'Administrator', 'superadmin'];
+            // Obtener créditos aprobados
+            let creditosAprobados = 0;
+            try {
+                const res = await fetch('/estudiantes/creditosAprobados', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                creditosAprobados = data.creditos || 0;
+            } catch (err) {
+                creditosAprobados = 0;
+            }
 
+            document.getElementById('userRole').innerHTML =
+                `<i class="fas fa-user-circle"></i> ${nombreUsuario ? nombreUsuario + ' - ' : ''}${userRole} <span style="color:white;font-weight:600;">(${creditosAprobados} créditos aprobados)</span>`;
+
+            const adminRoles = ['admin', 'administrador', 'administrator', 'superadmin'];
             if (adminRoles.includes(userRole.toLowerCase())) {
                 document.getElementById('adminPanel').style.display = 'block';
             }

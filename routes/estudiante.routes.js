@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const estudianteController = require('../controllers/estudiante.controller');
+const authMiddleware = require('../middlewares/auth');
 
 // Rutas para estudiantes
 router.get('/creditosAprobados', estudianteController.getCreditosAprobados);

@@ -650,17 +650,20 @@
             </div>
         </div>
 
-       
-        <div id="historialContainer" style="margin-top:30px;"></div>
-        <button class="admin-btn" id="verHistorialBtn" style="margin-top:10px;"
-            onclick="window.location.href='/historialMateriasEstudiante.html'">
-            <i class="fas fa-history"></i> Ver historial de materias
-        </button>
 
-        <button class="admin-btn" id="verCalendarioBtn" style="margin-top:10px; display:none;"
-            onclick="window.location.href='/calendario.html'">
-            <i class="fas fa-calendar-alt"></i> Ver calendario
-        </button>
+        <div id="historialContainer" style="margin-top:30px;"></div>
+        <div class="student-buttons" style="margin-top: 20px; display: flex; gap: 15px; flex-wrap: wrap;">
+            <button class="admin-btn" id="verHistorialBtn"
+                onclick="window.location.href='/historialMateriasEstudiante.html'">
+                <i class="fas fa-history"></i> Ver historial de materias
+            </button>
+
+            <button class="admin-btn" id="verCalendarioBtn" style="display:none;"
+                onclick="window.location.href='/calendario.html'">
+                <i class="fas fa-calendar-alt"></i> Ver calendario
+            </button>
+        </div>
+
     </div>
 
     <div id="notification" class="notification"></div>
@@ -851,9 +854,7 @@
         async function checkAdminRole() {
             if (!token) {
                 showNotification('Debe iniciar sesión para acceder', 'error');
-                setTimeout(() => {
-                    window.location.href = '/login';
-                }, 2000);
+                setTimeout(() => { window.location.href = '/login'; }, 2000);
                 return;
             }
 
@@ -863,7 +864,7 @@
                 return;
             }
 
-            userRole = decodedToken.rol || decodedToken.role || decodedToken.tipo || '';
+            userRole = (decodedToken.rol || decodedToken.role || decodedToken.tipo || '').trim().toLowerCase();
             const nombreUsuario = decodedToken.nombre || decodedToken.name || '';
 
             // Obtener créditos aprobados
@@ -882,19 +883,17 @@
                 `<i class="fas fa-user-circle"></i> ${nombreUsuario ? nombreUsuario + ' - ' : ''}${userRole} <span style="color:white;font-weight:600;">(${creditosAprobados} créditos aprobados)</span>`;
 
             const adminRoles = ['admin', 'administrador', 'administrator', 'superadmin'];
-            if (adminRoles.includes(userRole.toLowerCase())) {
+            if (adminRoles.includes(userRole)) {
                 document.getElementById('adminPanel').style.display = 'block';
-                // Ocultar historial para administradores
-                document.getElementById('historialSection').style.display = 'none';
-            } else {
-                document.getElementById('historialSection').style.display = 'block';
             }
 
-            // 👇 Mostrar botón de calendario solo si es estudiante
-            if (userRole.toLowerCase() === 'estudiante') {
-                document.getElementById('verCalendarioBtn').style.display = 'inline-block';
+            // Mostrar botón de calendario solo si es estudiante
+            if (userRole === 'estudiante') {
+                const btnCalendario = document.getElementById('verCalendarioBtn');
+                if (btnCalendario) btnCalendario.style.display = 'inline-block';
             }
         }
+
 
         // Funciones Editar / Eliminar
         function editarMateria(id) {
@@ -968,42 +967,42 @@
         });
 
         // Cerrar modal
-        document.getElementById('closeModalBtn').onclick = function() {
+        document.getElementById('closeModalBtn').onclick = function () {
             document.getElementById('inscritosModal').style.display = 'none';
             document.getElementById('modalBody').innerHTML = '';
         };
 
-       // Cargar estudiantes en el modal
-window.loadEstudiantesModal = async function(materiaId, btn) {
-    const div = document.getElementById('modal-estudiantes-' + materiaId);
-    if (div.style.display === 'block') {
-        div.style.display = 'none';
-        div.innerHTML = '';
-        btn.textContent = 'Ver estudiantes';
-        return;
-    }
-    div.style.display = 'block';
-    btn.textContent = 'Ocultar estudiantes';
-    div.innerHTML = '<div class="loading"><div class="spinner"></div><p>Cargando estudiantes...</p></div>';
-    
-    try {
-        const res = await fetch(`/users/inscritos/${materiaId}`, { 
-            headers: { 'Authorization': `Bearer ${token}` } 
-        });
-        
-        if (!res.ok) {
-            throw new Error('Error al cargar estudiantes');
-        }
-        
-        const estudiantes = await res.json();
-        
-        if (!estudiantes.length) {
-            div.innerHTML = '<p>No hay estudiantes inscritos en curso.</p>';
-            return;
-        }
-        
-        div.innerHTML = '<ul style="list-style:none; padding:0;">' + 
-            estudiantes.map(e => `
+        // Cargar estudiantes en el modal
+        window.loadEstudiantesModal = async function (materiaId, btn) {
+            const div = document.getElementById('modal-estudiantes-' + materiaId);
+            if (div.style.display === 'block') {
+                div.style.display = 'none';
+                div.innerHTML = '';
+                btn.textContent = 'Ver estudiantes';
+                return;
+            }
+            div.style.display = 'block';
+            btn.textContent = 'Ocultar estudiantes';
+            div.innerHTML = '<div class="loading"><div class="spinner"></div><p>Cargando estudiantes...</p></div>';
+
+            try {
+                const res = await fetch(`/users/inscritos/${materiaId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!res.ok) {
+                    throw new Error('Error al cargar estudiantes');
+                }
+
+                const estudiantes = await res.json();
+
+                if (!estudiantes.length) {
+                    div.innerHTML = '<p>No hay estudiantes inscritos en curso.</p>';
+                    return;
+                }
+
+                div.innerHTML = '<ul style="list-style:none; padding:0;">' +
+                    estudiantes.map(e => `
                 <li style="margin-bottom:10px; padding:10px; background:#f8f9fa; border-radius:8px;">
                     <strong>${e.nombre || e.email || e._id}</strong> 
                     <span style="color:#888;">(ID: ${e._id})</span>
@@ -1014,49 +1013,49 @@ window.loadEstudiantesModal = async function(materiaId, btn) {
                         Aprobar
                     </button>
                 </li>
-            `).join('') + 
-        '</ul>';
-    } catch (err) {
-        console.error('Error al cargar estudiantes:', err);
-        div.innerHTML = '<p>Error al cargar estudiantes.</p>';
-    }
-};
+            `).join('') +
+                    '</ul>';
+            } catch (err) {
+                console.error('Error al cargar estudiantes:', err);
+                div.innerHTML = '<p>Error al cargar estudiantes.</p>';
+            }
+        };
 
-       window.aprobarEstudiante = async function(userId, materiaId) {
-    if (!confirm('¿Aprobar al estudiante en esta materia?')) return;
-    try {
-        const res = await fetch(`/estudiantes/aprobar/${materiaId}`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ userId })
-        });
-        
-        const data = await res.json();
-        
-        if (!res.ok) {
-            throw new Error(data.message || 'Error al aprobar');
-        }
-        
-        showNotification('Estudiante aprobado correctamente');
-        
-        // Recargar la lista de estudiantes
-        const btn = document.querySelector(`button[onclick*="${materiaId}"]`);
-        if (btn) {
-            // Ocultar y mostrar para refrescar
-            const div = document.getElementById('modal-estudiantes-' + materiaId);
-            div.style.display = 'none';
-            setTimeout(() => {
-                loadEstudiantesModal(materiaId, btn);
-            }, 100);
-        }
-    } catch (err) {
-        showNotification('No se pudo aprobar: ' + err.message, 'error');
-        console.error('Error al aprobar:', err);
-    }
-};
+        window.aprobarEstudiante = async function (userId, materiaId) {
+            if (!confirm('¿Aprobar al estudiante en esta materia?')) return;
+            try {
+                const res = await fetch(`/estudiantes/aprobar/${materiaId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    throw new Error(data.message || 'Error al aprobar');
+                }
+
+                showNotification('Estudiante aprobado correctamente');
+
+                // Recargar la lista de estudiantes
+                const btn = document.querySelector(`button[onclick*="${materiaId}"]`);
+                if (btn) {
+                    // Ocultar y mostrar para refrescar
+                    const div = document.getElementById('modal-estudiantes-' + materiaId);
+                    div.style.display = 'none';
+                    setTimeout(() => {
+                        loadEstudiantesModal(materiaId, btn);
+                    }, 100);
+                }
+            } catch (err) {
+                showNotification('No se pudo aprobar: ' + err.message, 'error');
+                console.error('Error al aprobar:', err);
+            }
+        };
 
         // Configurar event listeners
         function setupEventListeners() {

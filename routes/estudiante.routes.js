@@ -24,4 +24,7 @@ router.get('/historial', authMiddleware, estudianteController.historialMaterias)
 // Obtener créditos aprobados
 router.get('/creditosAprobados', authMiddleware, estudianteController.getCreditosAprobados);
 
+router.get('/calendario', authMiddleware, estudianteController.getCalendario);
+
+
 module.exports = router;

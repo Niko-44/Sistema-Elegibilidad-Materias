@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editar Materia</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-     <style>
+    <style>
         :root {
             --primary-color: #3498db;
             --primary-dark: #2980b9;
@@ -272,6 +273,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1><i class="fas fa-edit"></i> Editar Materia</h1>
@@ -360,13 +362,18 @@
                     const div = document.createElement('div');
                     div.classList.add('horario');
                     div.innerHTML = `
-                        <input type="text" name="dia" value="${h.dia}" required>
-                        <input type="time" name="horaInicio" value="${h.horaInicio}" required>
-                        <input type="time" name="horaFin" value="${h.horaFin}" required>
-                        <button type="button" class="btn btn-danger removeHorarioBtn">
-                            <i class="fas fa-trash"></i> Eliminar
-                        </button>
-                    `;
+    <select name="dia" required>
+        <option value="">Seleccione un día</option>
+        ${["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"].map(d => `
+            <option value="${d}" ${h.dia === d ? 'selected' : ''}>${d}</option>
+        `).join('')}
+    </select>
+    <input type="time" name="horaInicio" value="${h.horaInicio}" required>
+    <input type="time" name="horaFin" value="${h.horaFin}" required>
+    <button type="button" class="btn btn-danger removeHorarioBtn">
+        <i class="fas fa-trash"></i> Eliminar
+    </button>
+`;
                     horariosContainer.appendChild(div);
                 });
 
@@ -476,13 +483,18 @@
             const div = document.createElement('div');
             div.classList.add('horario');
             div.innerHTML = `
-                <input type="text" name="dia" placeholder="Día (Ej: Martes)" required>
-                <input type="time" name="horaInicio" required>
-                <input type="time" name="horaFin" required>
-                <button type="button" class="btn btn-danger removeHorarioBtn">
-                    <i class="fas fa-trash"></i> Eliminar
-                </button>
-            `;
+    <select name="dia" required>
+        <option value="">Seleccione un día</option>
+        ${["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"].map(d => `
+            <option value="${d}">${d}</option>
+        `).join('')}
+    </select>
+    <input type="time" name="horaInicio" required>
+    <input type="time" name="horaFin" required>
+    <button type="button" class="btn btn-danger removeHorarioBtn">
+        <i class="fas fa-trash"></i> Eliminar
+    </button>
+`;
             container.appendChild(div);
         });
 
@@ -513,10 +525,11 @@
                 showNotification('Complete todos los campos obligatorios', 'error');
                 return false;
             }
+
             // Validar horarios
             const horariosDivs = document.querySelectorAll('.horario');
             for (let div of horariosDivs) {
-                const dia = div.querySelector('input[name="dia"]').value;
+                const dia = div.querySelector('select[name="dia"]').value; // Cambiado a select
                 const horaInicio = div.querySelector('input[name="horaInicio"]').value;
                 const horaFin = div.querySelector('input[name="horaFin"]').value;
                 if (!dia || !horaInicio || !horaFin) {
@@ -528,6 +541,7 @@
                     return false;
                 }
             }
+
             return true;
         }
 
@@ -535,6 +549,7 @@
         document.getElementById('materiaForm').addEventListener('submit', async e => {
             e.preventDefault();
             if (!validateForm()) return;
+
             const form = e.target;
             const codigo = form.codigo.value;
             const nombre = form.nombre.value;
@@ -544,7 +559,7 @@
             // Horarios
             const horariosDivs = document.querySelectorAll('.horario');
             const horarios = Array.from(horariosDivs).map(div => ({
-                dia: div.querySelector('input[name="dia"]').value,
+                dia: div.querySelector('select[name="dia"]').value, // Cambiado a select
                 horaInicio: div.querySelector('input[name="horaInicio"]').value,
                 horaFin: div.querySelector('input[name="horaFin"]').value
             }));
@@ -554,11 +569,13 @@
             let previas = [];
             try {
                 previas = JSON.parse(previasContainer.dataset.previas || '[]');
-            } catch { previas = []; }
+            } catch {
+                previas = [];
+            }
 
             // Transformar previas para enviar solo el ID y tipo
             const previasToSend = previas.map(p => ({
-                previa: p.previa._id || p.previa, // si es objeto, usa _id; si es string, usa directa
+                previa: p.previa._id || p.previa,
                 tipo: p.tipo
             }));
 
@@ -598,4 +615,5 @@
         });
     </script>
 </body>
+
 </html>

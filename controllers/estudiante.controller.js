@@ -2,12 +2,27 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/user.model');
 const Materia = require('../models/materia.model');
 
+// Función auxiliar para obtener el userId del token
+const getUserIdFromToken = (req) => {
+    try {
+        const token = req.headers.authorization?.replace('Bearer ', '');
+        if (!token) return null;
+        
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+        return decoded.userId;
+    } catch (error) {
+        return null;
+    }
+};
+
 // Inscribir a una materia
 exports.inscribirMateria = async (req, res) => {
-    const userId = req.user.userId; // Debes tener un middleware de autenticación que agregue req.user
-    const materiaId = req.params.id;
-
     try {
+        const userId = getUserIdFromToken(req);
+        if (!userId) return res.status(401).json({ message: 'Token inválido o no proporcionado' });
+
+        const materiaId = req.params.id;
+
         const materia = await Materia.findById(materiaId);
         if (!materia) return res.status(404).json({ message: 'Materia no encontrada' });
 
@@ -23,41 +38,33 @@ exports.inscribirMateria = async (req, res) => {
 
         res.json({ message: 'Inscripción exitosa' });
     } catch (err) {
+        console.error('Error al inscribirse:', err);
         res.status(500).json({ message: 'Error al inscribirse', error: err.message });
     }
 };
 
 // Historial de materias inscritas
 exports.historialMaterias = async (req, res) => {
-    const userId = req.user.userId;
     try {
+        const userId = getUserIdFromToken(req);
+        if (!userId) return res.status(401).json({ message: 'Token inválido o no proporcionado' });
+
         const user = await User.findById(userId).populate('materias.materia');
         if (!user) return res.status(404).json({ message: 'Usuario no encontrado' });
 
         res.json(user.materias);
     } catch (err) {
+        console.error('Error al obtener historial:', err);
         res.status(500).json({ message: 'Error al obtener historial', error: err.message });
     }
 };
 
 // Obtener créditos aprobados
 exports.getCreditosAprobados = async (req, res) => {
-    // Obtener el token del header
-    const authHeader = req.headers['authorization'];
-    if (!authHeader) return res.status(401).json({ creditos: 0, message: 'No autorizado' });
-
-    const token = authHeader.split(' ')[1];
-    if (!token) return res.status(401).json({ creditos: 0, message: 'Token malformado' });
-
-    let userId;
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
-        userId = decoded.id || decoded._id;
-    } catch (err) {
-        return res.status(403).json({ creditos: 0, message: 'Token inválido' });
-    }
+        const userId = getUserIdFromToken(req);
+        if (!userId) return res.status(401).json({ creditos: 0, message: 'Token inválido o no proporcionado' });
 
-    try {
         const user = await User.findById(userId).populate('materias.materia');
         if (!user) return res.status(404).json({ creditos: 0 });
 
@@ -70,6 +77,49 @@ exports.getCreditosAprobados = async (req, res) => {
 
         res.json({ creditos: suma });
     } catch (err) {
+        console.error('Error al obtener créditos:', err);
         res.status(500).json({ creditos: 0 });
+    }
+};
+
+// Aprobar una materia (solo admin)
+exports.aprobarMateria = async (req, res) => {
+    try {
+        const { userId: studentId } = req.body; // ID del estudiante a aprobar
+        const materiaId = req.params.id;
+
+        // Verificar permisos de administrador
+        const currentUserId = getUserIdFromToken(req);
+        if (!currentUserId) return res.status(401).json({ message: 'Token inválido o no proporcionado' });
+
+        const currentUser = await User.findById(currentUserId);
+        if (!currentUser) return res.status(404).json({ message: 'Usuario no encontrado' });
+
+        // Verificar si es administrador
+        if (!['Administrador', 'administrador', 'admin'].includes(currentUser.rol)) {
+            return res.status(403).json({ message: 'Solo administradores pueden aprobar materias' });
+        }
+
+        if (!studentId) return res.status(400).json({ message: 'Falta el ID del estudiante' });
+
+        const user = await User.findById(studentId);
+        if (!user) return res.status(404).json({ message: 'Estudiante no encontrado' });
+
+        // Buscar la materia en el array del usuario
+        const materiaObj = user.materias.find(m => 
+            m.materia && m.materia.toString() === materiaId
+        );
+        
+        if (!materiaObj) {
+            return res.status(404).json({ message: 'El estudiante no está inscrito en esta materia' });
+        }
+
+        materiaObj.estado = 'Aprobado';
+        await user.save();
+
+        res.json({ message: 'Materia aprobada correctamente' });
+    } catch (err) {
+        console.error('Error al aprobar materia:', err);
+        res.status(500).json({ message: 'Error al aprobar materia', error: err.message });
     }
 };

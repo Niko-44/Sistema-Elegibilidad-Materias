@@ -8,4 +8,7 @@ router.post('/inscribir/:id', estudianteController.inscribirMateria);
 router.get('/historial', estudianteController.historialMaterias);
 router.post('/aprobar/:id', estudianteController.aprobarMateria);
 
+router.get('/calendario', authMiddleware, estudianteController.getCalendario);
+
+
 module.exports = router;

@@ -123,3 +123,24 @@ exports.aprobarMateria = async (req, res) => {
         res.status(500).json({ message: 'Error al aprobar materia', error: err.message });
     }
 };
+
+exports.getCalendario = async (req, res) => {
+    const userId = req.user.userId;
+
+    try {
+        const user = await User.findById(userId).populate('materias.materia');
+        if (!user) return res.status(404).json({ message: 'Usuario no encontrado' });
+
+        // Solo materias activas con horarios
+        const calendario = user.materias
+            .filter(m => m.materia && m.materia.horarios.length > 0 && m.estado === "En Curso")
+            .map(m => ({
+                nombre: m.materia.nombre,
+                horarios: m.materia.horarios
+            }));
+
+        res.json(calendario);
+    } catch (err) {
+        res.status(500).json({ message: 'Error al obtener calendario', error: err.message });
+    }
+};

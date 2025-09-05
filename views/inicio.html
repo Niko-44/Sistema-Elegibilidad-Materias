@@ -650,15 +650,17 @@
             </div>
         </div>
 
-        <!-- Historial y botón, solo para no administradores -->
-        <div id="historialSection">
-            <div id="historialContainer" style="margin-top:30px;"></div>
-            <button class="admin-btn" id="verHistorialBtn" style="margin-top:10px;" onclick="window.location.href='/historialMateriasEstudiante.html'">
-                <i class="fas fa-history"></i> Ver historial de materias
-            </button>
-        </div>
+       
+        <div id="historialContainer" style="margin-top:30px;"></div>
+        <button class="admin-btn" id="verHistorialBtn" style="margin-top:10px;"
+            onclick="window.location.href='/historialMateriasEstudiante.html'">
+            <i class="fas fa-history"></i> Ver historial de materias
+        </button>
 
-        <div id="inscritosContainer" style="display:none; margin-top:30px;"></div>
+        <button class="admin-btn" id="verCalendarioBtn" style="margin-top:10px; display:none;"
+            onclick="window.location.href='/calendario.html'">
+            <i class="fas fa-calendar-alt"></i> Ver calendario
+        </button>
     </div>
 
     <div id="notification" class="notification"></div>
@@ -886,6 +888,11 @@
                 document.getElementById('historialSection').style.display = 'none';
             } else {
                 document.getElementById('historialSection').style.display = 'block';
+            }
+
+            // 👇 Mostrar botón de calendario solo si es estudiante
+            if (userRole.toLowerCase() === 'estudiante') {
+                document.getElementById('verCalendarioBtn').style.display = 'inline-block';
             }
         }
 

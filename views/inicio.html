@@ -612,7 +612,8 @@
 
         <!-- Agrega esto donde quieras mostrar el historial -->
         <div id="historialContainer" style="margin-top:30px;"></div>
-        <button class="admin-btn" id="verHistorialBtn" style="margin-top:10px;" onclick="window.location.href='/historialMateriasEstudiante.html'">
+        <button class="admin-btn" id="verHistorialBtn" style="margin-top:10px;"
+            onclick="window.location.href='/historialMateriasEstudiante.html'">
             <i class="fas fa-history"></i> Ver historial de materias
         </button>
     </div>
@@ -873,8 +874,16 @@
                     }
                 });
                 const data = await res.json();
-                if (!res.ok) throw new Error(data.message || 'Error al inscribirse');
+                if (!res.ok) {
+                    if (data.causas && data.causas.length) {
+                        showNotification('No elegible: ' + data.causas.join('; '), 'error');
+                    } else {
+                        showNotification(data.message || 'Error al inscribirse', 'error');
+                    }
+                    return;
+                }
                 showNotification('Inscripción exitosa');
+                loadMaterias(); // Opcional: recargar materias
             } catch (err) {
                 showNotification('No se pudo inscribir: ' + err.message, 'error');
             }

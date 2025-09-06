@@ -1,22 +1,41 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/user.model');
 const Materia = require('../models/materia.model');
+const Previa = require('../models/previa.model');
 
 // Inscribir a una materia
 exports.inscribirMateria = async (req, res) => {
-    const userId = req.user.userId; // Debes tener un middleware de autenticación que agregue req.user
+    const userId = req.user.userId;
     const materiaId = req.params.id;
 
     try {
-        const materia = await Materia.findById(materiaId);
+        const materia = await Materia.findById(materiaId).populate('previas');
         if (!materia) return res.status(404).json({ message: 'Materia no encontrada' });
 
-        const user = await User.findById(userId);
+        const user = await User.findById(userId).populate('materias.materia');
         if (!user) return res.status(404).json({ message: 'Usuario no encontrado' });
 
         // Verificar si ya está inscrito
-        const yaInscripto = user.materias.some(m => m.materia.toString() === materiaId);
+        const yaInscripto = user.materias.some(m => m.materia._id.toString() === materiaId);
         if (yaInscripto) return res.status(400).json({ message: 'Ya está inscrito en esta materia' });
+
+        // Verificar previas
+        let causas = [];
+        for (const previaId of materia.previas) {
+            const previa = await Previa.findById(previaId).populate('previa');
+            if (!previa) continue;
+            // Buscar si el usuario tiene la previa aprobada
+            const previaAprobada = user.materias.find(m =>
+                m.materia._id.toString() === previa.previa._id.toString() && m.estado === 'Aprobado'
+            );
+            if (!previaAprobada) {
+                causas.push(`Debes aprobar la materia "${previa.previa.nombre}"`);
+            }
+        }
+
+        if (causas.length > 0) {
+            return res.status(400).json({ message: 'No elegible para inscribirse', causas });
+        }
 
         user.materias.push({ materia: materiaId, estado: 'En Curso' });
         await user.save();

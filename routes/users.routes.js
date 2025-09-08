@@ -13,4 +13,6 @@ router.post("/logout", userController.logoutUser);
 // Ruta de login (autenticación)
 router.post("/login", userController.loginUser);
 
+router.get('/inscritos/:materiaId', userController.getEstudiantesInscritos);
+
 module.exports = router;

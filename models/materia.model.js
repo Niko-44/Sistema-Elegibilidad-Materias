@@ -6,7 +6,7 @@ const materiaSchema = new mongoose.Schema({
     creditos: { type: Number, required: true },
     semestre: { type: Number, required: true },
     horarios: [{ dia: String, horaInicio: String, horaFin: String }],
-    previas: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Previa' }]
+    previas: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Previa' }],
 });
 
 module.exports = mongoose.model('Materia', materiaSchema);

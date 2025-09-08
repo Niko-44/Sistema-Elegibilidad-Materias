@@ -74,9 +74,45 @@ function logoutUser(req, res) {
         .json({ message: 'Sesión cerrada exitosamente' });
 }
 
+async function getEstudiantesInscritos(req, res) {
+    const { materiaId } = req.params;
+
+    try {
+        // Convertir a ObjectId
+        const mongoose = require('mongoose');
+        const objectId = new mongoose.Types.ObjectId(materiaId);
+
+        const users = await User.find({ 
+            'materias.materia': objectId 
+        }).populate('materias.materia', 'nombre codigo');
+
+        const estudiantes = users.map(user => {
+            const materiaInfo = user.materias.find(m => 
+                m.materia && m.materia._id.toString() === materiaId
+            );
+            
+            // Solo incluir estudiantes con estado "En Curso"
+            if (materiaInfo && materiaInfo.estado === 'En Curso') {
+                return {
+                    _id: user._id,
+                    nombre: user.nombre,
+                    email: user.email,
+                    estado: materiaInfo.estado
+                };
+            }
+            return null; // Filtrar después
+        }).filter(estudiante => estudiante !== null); // Filtrar nulls
+
+        res.json(estudiantes);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error al obtener estudiantes inscritos' });
+    }
+}
 
 module.exports = {
     registerUser,
     loginUser,
-    logoutUser
+    logoutUser,
+    getEstudiantesInscritos
 };

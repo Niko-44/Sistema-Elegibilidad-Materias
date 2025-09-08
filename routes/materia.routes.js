@@ -8,4 +8,5 @@ router.post('/', materiaController.createMateria);
 router.put('/:id', materiaController.updateMateria);
 router.delete('/:id', materiaController.deleteMateria);
 router.get('/:id', materiaController.getMateriaById);
+
 module.exports = router;

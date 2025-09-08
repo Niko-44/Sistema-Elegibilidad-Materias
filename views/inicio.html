@@ -465,6 +465,43 @@
             transform: translateX(0);
         }
 
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .modal-content {
+            background: #fff;
+            border-radius: 12px;
+            padding: 30px 40px;
+            min-width: 400px;
+            max-width: 90vw;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+            position: relative;
+        }
+
+        .close {
+            position: absolute;
+            top: 18px;
+            right: 22px;
+            font-size: 28px;
+            cursor: pointer;
+            color: #888;
+        }
+
+        .close:hover {
+            color: #e74c3c;
+        }
+
         /* Responsive Design */
         @media (max-width: 992px) {
             .admin-buttons {
@@ -577,6 +614,9 @@
                 <button class="admin-btn" id="createBtn">
                     <i class="fas fa-plus-circle"></i> Crear Nueva Materia
                 </button>
+                <button class="admin-btn" id="verInscritosBtn">
+                    <i class="fas fa-users"></i> Ver estudiantes inscritos
+                </button>
             </div>
         </div>
 
@@ -610,15 +650,32 @@
             </div>
         </div>
 
-        <!-- Agrega esto donde quieras mostrar el historial -->
+
         <div id="historialContainer" style="margin-top:30px;"></div>
-        <button class="admin-btn" id="verHistorialBtn" style="margin-top:10px;"
-            onclick="window.location.href='/historialMateriasEstudiante.html'">
-            <i class="fas fa-history"></i> Ver historial de materias
-        </button>
+        <div class="student-buttons" style="margin-top: 20px; display: flex; gap: 15px; flex-wrap: wrap;">
+            <button class="admin-btn" id="verHistorialBtn"
+                onclick="window.location.href='/historialMateriasEstudiante.html'">
+                <i class="fas fa-history"></i> Ver historial de materias
+            </button>
+
+            <button class="admin-btn" id="verCalendarioBtn" style="display:none;"
+                onclick="window.location.href='/calendario.html'">
+                <i class="fas fa-calendar-alt"></i> Ver calendario
+            </button>
+        </div>
+
     </div>
 
     <div id="notification" class="notification"></div>
+
+    <!-- Modal para estudiantes inscritos -->
+    <div id="inscritosModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close" id="closeModalBtn">&times;</span>
+            <h2 id="modalTitle">Estudiantes inscritos</h2>
+            <div id="modalBody"></div>
+        </div>
+    </div>
 
     <script>
         // Obtener el token del localStorage
@@ -732,6 +789,7 @@
                                 <i class="fas fa-clock"></i>
                                 <span>Horarios: ${m.horarios && m.horarios.length > 0 ? m.horarios.length : '0'} programados</span>
                             </div>
+                           
                         </div>
                         ${m.previas && m.previas.length > 0 ? `
                         <div class="previas-section">
@@ -754,14 +812,13 @@
                                 <i class="fas fa-trash-alt"></i> Eliminar
                             </button>
                         </div>
+                        ` : userRole && userRole.toLowerCase() === 'estudiante' ? `
+                        <div class="materia-actions">
+                            <button class="action-btn" style="background: var(--success-color); color: white;" onclick="inscribirmeMateria('${m._id}')">
+                                <i class="fas fa-check-circle"></i> Inscribirme
+                            </button>
+                        </div>
                         ` : ''}
-                        ${userRole && userRole.toLowerCase() === 'estudiante' ? `
-<div class="materia-actions">
-    <button class="action-btn" style="background: var(--success-color); color: white;" onclick="inscribirmeMateria('${m._id}')">
-        <i class="fas fa-check-circle"></i> Inscribirme
-    </button>
-</div>
-` : ''}
                     </div>
                 `;
 
@@ -797,9 +854,7 @@
         async function checkAdminRole() {
             if (!token) {
                 showNotification('Debe iniciar sesión para acceder', 'error');
-                setTimeout(() => {
-                    window.location.href = '/login';
-                }, 2000);
+                setTimeout(() => { window.location.href = '/login'; }, 2000);
                 return;
             }
 
@@ -809,7 +864,7 @@
                 return;
             }
 
-            userRole = decodedToken.rol || decodedToken.role || decodedToken.tipo || '';
+            userRole = (decodedToken.rol || decodedToken.role || decodedToken.tipo || '').trim().toLowerCase();
             const nombreUsuario = decodedToken.nombre || decodedToken.name || '';
 
             // Obtener créditos aprobados
@@ -828,10 +883,17 @@
                 `<i class="fas fa-user-circle"></i> ${nombreUsuario ? nombreUsuario + ' - ' : ''}${userRole} <span style="color:white;font-weight:600;">(${creditosAprobados} créditos aprobados)</span>`;
 
             const adminRoles = ['admin', 'administrador', 'administrator', 'superadmin'];
-            if (adminRoles.includes(userRole.toLowerCase())) {
+            if (adminRoles.includes(userRole)) {
                 document.getElementById('adminPanel').style.display = 'block';
             }
+
+            // Mostrar botón de calendario solo si es estudiante
+            if (userRole === 'estudiante') {
+                const btnCalendario = document.getElementById('verCalendarioBtn');
+                if (btnCalendario) btnCalendario.style.display = 'inline-block';
+            }
         }
+
 
         // Funciones Editar / Eliminar
         function editarMateria(id) {
@@ -889,6 +951,120 @@
             }
         }
 
+        // Mostrar estudiantes inscritos por materia
+        document.getElementById('verInscritosBtn').addEventListener('click', async () => {
+            const modal = document.getElementById('inscritosModal');
+            const modalBody = document.getElementById('modalBody');
+            modal.style.display = 'flex';
+            modalBody.innerHTML = '<div class="loading"><div class="spinner"></div><p>Cargando estudiantes inscritos...</p></div>';
+            try {
+                const res = await fetch('/materias', { headers: { 'Authorization': `Bearer ${token}` } });
+                const materias = await res.json();
+                let html = '';
+                for (const materia of materias) {
+                    html += `<div style="margin-bottom:18px; border-bottom:1px solid #eee; padding-bottom:10px;">
+                <h3 style="color:#3498db;">${materia.codigo} - ${materia.nombre}</h3>
+                <button class="admin-btn" style="margin-bottom:8px;" onclick="loadEstudiantesModal('${materia._id}', this)">Ver estudiantes</button>
+                <div id="modal-estudiantes-${materia._id}" style="display:none;"></div>
+            </div>`;
+                }
+                modalBody.innerHTML = html;
+            } catch (err) {
+                modalBody.innerHTML = '<p>Error al cargar materias.</p>';
+            }
+        });
+
+        // Cerrar modal
+        document.getElementById('closeModalBtn').onclick = function () {
+            document.getElementById('inscritosModal').style.display = 'none';
+            document.getElementById('modalBody').innerHTML = '';
+        };
+
+        // Cargar estudiantes en el modal
+        window.loadEstudiantesModal = async function (materiaId, btn) {
+            const div = document.getElementById('modal-estudiantes-' + materiaId);
+            if (div.style.display === 'block') {
+                div.style.display = 'none';
+                div.innerHTML = '';
+                btn.textContent = 'Ver estudiantes';
+                return;
+            }
+            div.style.display = 'block';
+            btn.textContent = 'Ocultar estudiantes';
+            div.innerHTML = '<div class="loading"><div class="spinner"></div><p>Cargando estudiantes...</p></div>';
+
+            try {
+                const res = await fetch(`/users/inscritos/${materiaId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!res.ok) {
+                    throw new Error('Error al cargar estudiantes');
+                }
+
+                const estudiantes = await res.json();
+
+                if (!estudiantes.length) {
+                    div.innerHTML = '<p>No hay estudiantes inscritos en curso.</p>';
+                    return;
+                }
+
+                div.innerHTML = '<ul style="list-style:none; padding:0;">' +
+                    estudiantes.map(e => `
+                <li style="margin-bottom:10px; padding:10px; background:#f8f9fa; border-radius:8px;">
+                    <strong>${e.nombre || e.email || e._id}</strong> 
+                    <span style="color:#888;">(ID: ${e._id})</span>
+                    <br>Email: ${e.email}
+                    <br>Estado: <span style="font-weight:500; color: #e67e22;">${e.estado}</span>
+                    <button style="margin-left:12px; background:#2ecc71; color:white; border:none; border-radius:6px; padding:6px 12px; cursor:pointer;" 
+                            onclick="aprobarEstudiante('${e._id}','${materiaId}', this)">
+                        Aprobar
+                    </button>
+                </li>
+            `).join('') +
+                    '</ul>';
+            } catch (err) {
+                console.error('Error al cargar estudiantes:', err);
+                div.innerHTML = '<p>Error al cargar estudiantes.</p>';
+            }
+        };
+
+        window.aprobarEstudiante = async function (userId, materiaId) {
+            if (!confirm('¿Aprobar al estudiante en esta materia?')) return;
+            try {
+                const res = await fetch(`/estudiantes/aprobar/${materiaId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ userId })
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    throw new Error(data.message || 'Error al aprobar');
+                }
+
+                showNotification('Estudiante aprobado correctamente');
+
+                // Recargar la lista de estudiantes
+                const btn = document.querySelector(`button[onclick*="${materiaId}"]`);
+                if (btn) {
+                    // Ocultar y mostrar para refrescar
+                    const div = document.getElementById('modal-estudiantes-' + materiaId);
+                    div.style.display = 'none';
+                    setTimeout(() => {
+                        loadEstudiantesModal(materiaId, btn);
+                    }, 100);
+                }
+            } catch (err) {
+                showNotification('No se pudo aprobar: ' + err.message, 'error');
+                console.error('Error al aprobar:', err);
+            }
+        };
+
         // Configurar event listeners
         function setupEventListeners() {
             // Búsqueda y filtros
@@ -924,6 +1100,11 @@
                 } catch (err) {
                     showNotification('No se pudo cargar el historial', 'error');
                 }
+            });
+
+            // Cerrar modal
+            document.getElementById('closeModalBtn').addEventListener('click', () => {
+                document.getElementById('inscritosModal').style.display = 'none';
             });
         }
 

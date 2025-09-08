@@ -1,5 +1,6 @@
 const Materia = require('../models/materia.model');
 const Previa = require('../models/previa.model');
+const User = require('../models/user.model');
 
 // Listar todas las materias con sus previas
 async function getAllMaterias(req, res) {
@@ -7,7 +8,7 @@ async function getAllMaterias(req, res) {
         const materias = await Materia.find()
             .populate({
                 path: 'previas',
-                populate: { path: 'previa', select: 'nombre' } // solo traemos el nombre
+                populate: { path: 'previa', select: 'nombre' }
             });
         res.json(materias);
     } catch (error) {
@@ -16,7 +17,6 @@ async function getAllMaterias(req, res) {
     }
 }
 
-
 // Crear una materia
 async function createMateria(req, res) {
     try {
@@ -24,7 +24,7 @@ async function createMateria(req, res) {
 
         // Crear la materia
         const materia = new Materia({ codigo, nombre, creditos, semestre, horarios });
-        await materia.save(); // necesitamos el _id para las previas
+        await materia.save();
 
         // Crear objetos Previa para cada materia seleccionada
         if (previas && previas.length > 0) {
@@ -32,10 +32,9 @@ async function createMateria(req, res) {
                 if (!p.previa) continue;
 
                 const nuevaPrevia = new Previa({
-                    materia: materia._id, // la materia que tiene la previa
-                    previa: p.previa,     // la materia seleccionada como previa
-                    tipo: p.tipo,
-                    'Aprobada': p.Aprobada || 'NO'
+                    materia: materia._id,
+                    previa: p.previa,
+                    tipo: p.tipo
                 });
                 await nuevaPrevia.save();
                 materia.previas.push(nuevaPrevia._id);
@@ -54,8 +53,6 @@ async function createMateria(req, res) {
         res.status(500).json({ message: 'Error al crear materia', error });
     }
 }
-
-
 
 // Editar / actualizar una materia
 async function updateMateria(req, res) {

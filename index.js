@@ -4,6 +4,7 @@ const bodyParser = require("body-parser");
 const path = require("path");
 const jwt = require("jsonwebtoken");
 const cookieParser = require('cookie-parser');
+const authMiddleware = require('./middlewares/auth');
 
 require("dotenv").config(); // Cargar variables de entorno desde el archivo .env
 
@@ -37,22 +38,7 @@ app.use('/materias', materiaRoutes);
 app.use('/previas', previaRoutes);
 app.use('/estudiantes', estudianteRoutes); 
 
-// Middleware para proteger rutas (verificar JWT)
-function authenticateJWT(req, res, next) {
-  const token = req.cookies.token;
 
-  if (!token) {
-    return res.redirect("/login"); // 👉 redirige si no hay token
-  }
-
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) {
-      return res.redirect("/login"); // 👉 redirige si el token es inválido o expiró
-    }
-    req.user = user;
-    next();
-  });
-}
 
 // Ruta pública
 app.get("/login", (req, res) => {
@@ -64,19 +50,19 @@ app.get("/register", (req, res) => {
 });
 
 // Ruta protegida (requiere autenticación)
-app.get("/inicio", authenticateJWT, (req, res) => {
+app.get("/inicio", authMiddleware, (req, res) => {
   res.sendFile(path.join(__dirname, "views", "inicio.html"));
 });
 
-app.get("/createMateria.html", authenticateJWT, (req, res) => {
+app.get("/createMateria.html", authMiddleware, (req, res) => {
   res.sendFile(path.join(__dirname, "views", "createMateria.html"));
 });
 
-app.get("/createMateria.html", authenticateJWT, (req, res) => {
+app.get("/createMateria.html", authMiddleware, (req, res) => {
   res.sendFile(path.join(__dirname, "views", "editMateria.html"));
 });
 
-app.get("/historialMateriasEstudiante.html", authenticateJWT, (req, res) => {
+app.get("/historialMateriasEstudiante.html", authMiddleware, (req, res) => {
   res.sendFile(path.join(__dirname, "views", "historialMateriasEstudiante.html"));
 });
 

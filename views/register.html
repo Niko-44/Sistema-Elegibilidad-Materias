@@ -152,32 +152,6 @@
             color: var(--text-light);
         }
 
-        .terms {
-            display: flex;
-            align-items: flex-start;
-            margin-bottom: 20px;
-            font-size: 0.9rem;
-        }
-
-        .terms input {
-            margin-top: 4px;
-            margin-right: 10px;
-        }
-
-        .terms label {
-            color: var(--text-light);
-            line-height: 1.4;
-        }
-
-        .terms a {
-            color: var(--primary-color);
-            text-decoration: none;
-        }
-
-        .terms a:hover {
-            text-decoration: underline;
-        }
-
         .register-btn {
             width: 100%;
             padding: 12px;
@@ -364,10 +338,6 @@
                 </div>
             </div>
 
-            <div class="terms">
-                <input type="checkbox" id="terms" name="terms" required>
-                <label for="terms">Acepto los <a href="#">términos y condiciones</a> y la <a href="#">política de privacidad</a></label>
-            </div>
 
             <button type="submit" class="register-btn" id="registerButton">
                 <span id="buttonText">Crear Cuenta</span>
@@ -468,7 +438,6 @@
                 const password = document.getElementById('password').value;
                 const confirmPassword = document.getElementById('confirmPassword').value;
                 const rol = document.getElementById('rol').value;
-                const terms = document.getElementById('terms').checked;
                 
                 // Validaciones del cliente
                 if (!validateEmail(email)) {
@@ -488,11 +457,6 @@
                 
                 if (!rol) {
                     showError('Por favor, selecciona un rol.');
-                    return;
-                }
-                
-                if (!terms) {
-                    showError('Debes aceptar los términos y condiciones.');
                     return;
                 }
                 

@@ -172,11 +172,6 @@ exports.cambiarEstadoMateria = async (req, res) => {
         const currentUser = await User.findById(currentUserId);
         if (!currentUser) return res.status(404).json({ message: 'Usuario no encontrado' });
 
-        // Solo admin puede cambiar estado de otros
-        if (!['Administrador', 'administrador', 'admin'].includes(currentUser.rol)) {
-            return res.status(403).json({ message: 'Solo administradores pueden cambiar estados' });
-        }
-
         const materiaId = req.params.id;
         const { userId, estado } = req.body;
 
@@ -186,8 +181,21 @@ exports.cambiarEstadoMateria = async (req, res) => {
             return res.status(400).json({ message: 'Estado no permitido' });
         }
 
-        const user = await User.findById(userId);
-        if (!user) return res.status(404).json({ message: 'Estudiante no encontrado' });
+        // Si es admin, puede cambiar el estado de cualquier usuario
+        // Si es estudiante, solo puede cambiar el estado de sí mismo
+        let targetUserId;
+        if (['Administrador', 'administrador', 'admin'].includes(currentUser.rol)) {
+            targetUserId = userId || currentUserId;
+        } else {
+            // Solo puede cambiar su propio estado
+            if (userId && userId !== currentUserId) {
+                return res.status(403).json({ message: 'No tienes permiso para cambiar el estado de otro usuario' });
+            }
+            targetUserId = currentUserId;
+        }
+
+        const user = await User.findById(targetUserId);
+        if (!user) return res.status(404).json({ message: 'Usuario no encontrado' });
 
         const materiaObj = user.materias.find(m => m.materia.toString() === materiaId);
         if (!materiaObj) {

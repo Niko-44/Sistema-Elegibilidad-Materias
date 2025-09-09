@@ -2,48 +2,613 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Historial de Materias Inscritas</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historial Académico</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Poppins', sans-serif; background: #f8f9fa; margin: 0; }
-        .container { max-width: 800px; margin: 40px auto; background: #fff; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); padding: 30px; }
-        h2 { color: #19b0e1; margin-bottom: 20px; }
-        ul { list-style: none; padding: 0; }
-        li { padding: 12px 0; border-bottom: 1px solid #eee; font-size: 1.05rem; }
-        .back-btn { margin-top: 25px; background: #19b0e1; color: #fff; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 1rem; }
-        .back-btn:hover { background: #3a56d4; }
-        .empty { color: #888; margin-top: 20px; }
+        :root {
+            --primary: #19b0e1;
+            --primary-dark: #0f8cb4;
+            --secondary: #3a56d4;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --gray: #6c757d;
+            --border-radius: 12px;
+            --box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo i {
+            font-size: 2rem;
+            color: var(--primary);
+        }
+
+        .logo h1 {
+            font-weight: 700;
+            font-size: 1.8rem;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .back-btn {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition);
+            box-shadow: var(--box-shadow);
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .dashboard {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .dashboard-header {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .dashboard-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .dashboard-title h2 {
+            font-weight: 600;
+            font-size: 1.5rem;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            padding: 20px;
+            background: var(--light);
+        }
+
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        .filters {
+            padding: 20px;
+            background: var(--light);
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-box {
+            position: relative;
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 15px 12px 45px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(25, 176, 225, 0.2);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+        }
+
+        .filter-select {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            background: white;
+            cursor: pointer;
+            min-width: 180px;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .historial-list {
+            padding: 20px;
+        }
+
+        .materia-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            border-left: 4px solid var(--primary);
+            transition: var(--transition);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .materia-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .materia-info {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .materia-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .materia-details {
+            display: flex;
+            gap: 15px;
+            color: var(--gray);
+            font-size: 0.9rem;
+            flex-wrap: wrap;
+        }
+
+        .materia-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .estado-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .estado-en-curso {
+            background-color: rgba(40, 167, 69, 0.15);
+            color: var(--success);
+        }
+
+        .estado-aprobado {
+            background-color: rgba(25, 176, 225, 0.15);
+            color: var(--primary);
+        }
+
+        .estado-cursado {
+            background-color: rgba(255, 193, 7, 0.15);
+            color: var(--warning);
+        }
+
+        .estado-pendiente {
+            background-color: rgba(108, 117, 125, 0.15);
+            color: var(--gray);
+        }
+
+        .estado-select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 0.9rem;
+            background: white;
+            cursor: pointer;
+            min-width: 140px;
+        }
+
+        .estado-select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #ddd;
+        }
+
+        .empty-state p {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        .action-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .action-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .materia-card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .materia-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-box {
+                min-width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2><i class="fas fa-history"></i> Historial de materias inscritas</h2>
-        <ul id="historialList"></ul>
-        <div id="emptyMsg" class="empty"></div>
-        <button class="back-btn" onclick="window.location.href='/inicio'"><i class="fas fa-arrow-left"></i> Volver al inicio</button>
+        <header>
+            <div class="logo">
+                <i class="fas fa-graduation-cap"></i>
+                <h1>Portal Académico</h1>
+            </div>
+            <button class="back-btn" onclick="window.location.href='/inicio'">
+                <i class="fas fa-arrow-left"></i> Volver al inicio
+            </button>
+        </header>
+
+        <div class="dashboard">
+            <div class="dashboard-header">
+                <div class="dashboard-title">
+                    <i class="fas fa-history"></i>
+                    <h2>Historial Académico</h2>
+                </div>
+            </div>
+
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="total-materias">0</div>
+                    <div class="stat-label">Total Materias</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="aprobadas">0</div>
+                    <div class="stat-label">Aprobadas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="en-curso">0</div>
+                    <div class="stat-label">En Curso</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="pendientes">0</div>
+                    <div class="stat-label">Pendientes</div>
+                </div>
+            </div>
+
+            <div class="filters">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Buscar materia...">
+                </div>
+                <select class="filter-select" id="filterEstado">
+                    <option value="all">Todos los estados</option>
+                    <option value="En Curso">En Curso</option>
+                    <option value="Aprobado">Aprobado</option>
+                    <option value="Cursado">Cursado</option>
+                    <option value="Pendiente">Pendiente</option>
+                </select>
+                <select class="filter-select" id="sortSelect">
+                    <option value="nombre">Ordenar por nombre</option>
+                    <option value="estado">Ordenar por estado</option>
+                    <option value="reciente">Más recientes</option>
+                </select>
+            </div>
+
+            <div class="historial-list" id="historialList">
+                <!-- Las materias se cargarán aquí -->
+            </div>
+        </div>
+
+        <div id="emptyMsg" class="empty-state">
+            <i class="fas fa-book-open"></i>
+            <p>No te has inscrito a ninguna materia.</p>
+            <button class="action-btn" onclick="window.location.href='/materias'">
+                <i class="fas fa-plus"></i> Explorar materias
+            </button>
+        </div>
+
+        <footer>
+            <p>Sistema Académico &copy; 2023 - Todos los derechos reservados</p>
+        </footer>
     </div>
+
     <script>
         const token = localStorage.getItem('token');
+        let allMaterias = [];
+
         async function cargarHistorial() {
             try {
                 const res = await fetch('/estudiantes/historial', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                const materias = await res.json();
-                const list = document.getElementById('historialList');
-                const emptyMsg = document.getElementById('emptyMsg');
-                if (!materias.length) {
-                    emptyMsg.textContent = 'No te has inscrito a ninguna materia.';
-                    return;
+                
+                if (!res.ok) {
+                    throw new Error('Error al cargar el historial');
                 }
-                list.innerHTML = materias.map(m =>
-                    `<li><strong>${m.materia?.nombre || 'Materia eliminada'}</strong> <span style="color:#19b0e1;">(${m.estado})</span></li>`
-                ).join('');
+                
+                const materias = await res.json();
+                allMaterias = materias;
+                
+                mostrarMaterias(materias);
+                actualizarEstadisticas(materias);
+                
+                // Ocultar mensaje de vacío si hay materias
+                const emptyMsg = document.getElementById('emptyMsg');
+                emptyMsg.style.display = materias.length ? 'none' : 'block';
+                
             } catch (err) {
-                document.getElementById('emptyMsg').textContent = 'No se pudo cargar el historial.';
+                document.getElementById('emptyMsg').innerHTML = `
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>No se pudo cargar el historial. ${err.message}</p>
+                    <button class="action-btn" onclick="cargarHistorial()">
+                        <i class="fas fa-redo"></i> Reintentar
+                    </button>
+                `;
+                document.getElementById('emptyMsg').style.display = 'block';
             }
         }
-        document.addEventListener('DOMContentLoaded', cargarHistorial);
+
+        function mostrarMaterias(materias) {
+            const list = document.getElementById('historialList');
+            
+            if (!materias.length) {
+                list.innerHTML = '';
+                return;
+            }
+            
+            list.innerHTML = materias.map(m => {
+                const estadoClass = `estado-${m.estado.toLowerCase().replace(' ', '-')}`;
+                
+                return `
+                    <div class="materia-card">
+                        <div class="materia-info">
+                            <div class="materia-name">${m.materia?.nombre || 'Materia eliminada'}</div>
+                            <div class="materia-details">
+                                <span><i class="fas fa-code"></i> ${m.materia?.codigo || 'N/A'}</span>
+                                <span><i class="fas fa-clock"></i> ${m.materia?.creditos || '0'} créditos</span>
+                            </div>
+                        </div>
+                        <div class="materia-actions">
+                            <span class="estado-badge ${estadoClass}">${m.estado}</span>
+                            ${m.materia ? `
+                            <select class="estado-select" onchange="cambiarEstado('${m.materia._id}', this.value)">
+                                <option value="En Curso" ${m.estado === 'En Curso' ? 'selected' : ''}>En Curso</option>
+                                <option value="Aprobado" ${m.estado === 'Aprobado' ? 'selected' : ''}>Aprobado</option>
+                                <option value="Cursado" ${m.estado === 'Cursado' ? 'selected' : ''}>Cursado</option>
+                                <option value="Pendiente" ${m.estado === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
+                            </select>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function actualizarEstadisticas(materias) {
+            document.getElementById('total-materias').textContent = materias.length;
+            document.getElementById('aprobadas').textContent = materias.filter(m => m.estado === 'Aprobado').length;
+            document.getElementById('en-curso').textContent = materias.filter(m => m.estado === 'En Curso').length;
+            document.getElementById('pendientes').textContent = materias.filter(m => m.estado === 'Pendiente').length;
+        }
+
+        async function cambiarEstado(materiaId, nuevoEstado) {
+            try {
+                const res = await fetch(`/estudiantes/cambiar-estado/${materiaId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ estado: nuevoEstado })
+                });
+                
+                const data = await res.json();
+                
+                if (res.ok) {
+                    // Actualizar la interfaz
+                    cargarHistorial();
+                    
+                    // Mostrar notificación de éxito
+                    showNotification('Estado actualizado correctamente', 'success');
+                } else {
+                    showNotification(data.message || 'No se pudo cambiar el estado', 'error');
+                }
+            } catch (err) {
+                showNotification('Error al cambiar el estado', 'error');
+            }
+        }
+
+        function filtrarMaterias() {
+            const searchText = document.getElementById('searchInput').value.toLowerCase();
+            const filterEstado = document.getElementById('filterEstado').value;
+            const sortBy = document.getElementById('sortSelect').value;
+            
+            let filtered = allMaterias.filter(m => {
+                const matchesSearch = m.materia?.nombre?.toLowerCase().includes(searchText) || 
+                                    (m.materia?.codigo?.toLowerCase().includes(searchText)) || 
+                                    (!m.materia && 'materia eliminada'.includes(searchText));
+                const matchesEstado = filterEstado === 'all' || m.estado === filterEstado;
+                return matchesSearch && matchesEstado;
+            });
+            
+            // Ordenar
+            switch(sortBy) {
+                case 'nombre':
+                    filtered.sort((a, b) => (a.materia?.nombre || '').localeCompare(b.materia?.nombre || ''));
+                    break;
+                case 'estado':
+                    filtered.sort((a, b) => a.estado.localeCompare(b.estado));
+                    break;
+                case 'reciente':
+                    // Asumiendo que existe una propiedad fechaInscripcion
+                    filtered.sort((a, b) => new Date(b.fechaInscripcion) - new Date(a.fechaInscripcion));
+                    break;
+            }
+            
+            mostrarMaterias(filtered);
+        }
+
+        function showNotification(message, type) {
+            // Crear elemento de notificación
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                border-radius: 8px;
+                color: white;
+                font-weight: 500;
+                z-index: 1000;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
+            `;
+            
+            notification.style.backgroundColor = type === 'success' ? '#28a745' : '#dc3545';
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // Mostrar notificación
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 10);
+            
+            // Ocultar después de 3 segundos
+            setTimeout(() => {
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarHistorial();
+            
+            // Configurar event listeners para filtros
+            document.getElementById('searchInput').addEventListener('input', filtrarMaterias);
+            document.getElementById('filterEstado').addEventListener('change', filtrarMaterias);
+            document.getElementById('sortSelect').addEventListener('change', filtrarMaterias);
+        });
     </script>
 </body>
 </html>

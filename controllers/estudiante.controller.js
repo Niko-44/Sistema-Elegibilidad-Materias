@@ -163,3 +163,35 @@ exports.getCalendario = async (req, res) => {
         res.status(500).json({ message: 'Error al obtener calendario', error: err.message });
     }
 };
+
+exports.cambiarEstadoMateria = async (req, res) => {
+    try {
+        const userId = getUserIdFromToken(req);
+        if (!userId) return res.status(401).json({ message: 'Token inválido o no proporcionado' });
+
+        const materiaId = req.params.id;
+        const { estado } = req.body;
+
+        // Validar estado permitido
+        const estadosPermitidos = ['Pendiente', 'Cursado', 'En Curso', 'Aprobado'];
+        if (!estadosPermitidos.includes(estado)) {
+            return res.status(400).json({ message: 'Estado no permitido' });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: 'Usuario no encontrado' });
+
+        const materiaObj = user.materias.find(m => m.materia.toString() === materiaId);
+        if (!materiaObj) {
+            return res.status(404).json({ message: 'No inscrito en esta materia' });
+        }
+
+        materiaObj.estado = estado;
+        await user.save();
+
+        res.json({ message: 'Estado actualizado correctamente' });
+    } catch (err) {
+        console.error('Error al cambiar estado:', err);
+        res.status(500).json({ message: 'Error al cambiar estado', error: err.message });
+    }
+};

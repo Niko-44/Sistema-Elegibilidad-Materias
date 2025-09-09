@@ -1045,44 +1045,38 @@
                 div.innerHTML = '<p>Error al cargar estudiantes.</p>';
             }
         };
+window.aprobarEstudiante = async function (userId, materiaId, btn) {
+    if (!confirm('¿Aprobar al estudiante en esta materia?')) return;
+    try {
+        const res = await fetch(`/estudiantes/aprobar/${materiaId}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ userId })
+        });
 
-        window.aprobarEstudiante = async function (userId, materiaId) {
-            if (!confirm('¿Aprobar al estudiante en esta materia?')) return;
-            try {
-                const res = await fetch(`/estudiantes/aprobar/${materiaId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ userId })
-                });
+        const data = await res.json();
 
-                const data = await res.json();
+        if (!res.ok) {
+            throw new Error(data.message || 'Error al aprobar');
+        }
 
-                if (!res.ok) {
-                    throw new Error(data.message || 'Error al aprobar');
-                }
+        showNotification('Estudiante aprobado correctamente');
 
-                showNotification('Estudiante aprobado correctamente');
+        // ✅ Quitar al estudiante del DOM
+        const li = btn.closest("li");
+        if (li) li.remove();
 
-                // Recargar la lista de estudiantes
-                const btn = document.querySelector(`button[onclick*="${materiaId}"]`);
-                if (btn) {
-                    // Ocultar y mostrar para refrescar
-                    const div = document.getElementById('modal-estudiantes-' + materiaId);
-                    div.style.display = 'none';
-                    setTimeout(() => {
-                        loadEstudiantesModal(materiaId, btn);
-                    }, 100);
-                }
-            } catch (err) {
-                showNotification('No se pudo aprobar: ' + err.message, 'error');
-                console.error('Error al aprobar:', err);
-            }
-        };
+    } catch (err) {
+        showNotification('No se pudo aprobar: ' + err.message, 'error');
+        console.error('Error al aprobar:', err);
+    }
+};
 
-        window.cursarEstudiante = async function (userId, materiaId) {
+
+window.cursarEstudiante = async function (userId, materiaId, btn) {
     if (!confirm('¿Marcar al estudiante como cursado en esta materia?')) return;
     try {
         const res = await fetch(`/estudiantes/cambiarEstado/${materiaId}`, {
@@ -1102,21 +1096,17 @@
 
         showNotification('Estudiante marcado como cursado');
 
-        // Recargar la lista de estudiantes
-        const btn = document.querySelector(`button[onclick*="${materiaId}"]`);
-        if (btn) {
-            const div = document.getElementById('modal-estudiantes-' + materiaId);
-            div.style.display = 'none';
-            setTimeout(() => {
-                loadEstudiantesModal(materiaId, btn);
-            }, 100);
-        }
+        // ✅ Actualizar estado en el DOM
+        const li = btn.closest("li");
+        const estadoSpan = li.querySelector("span[style*='font-weight']");
+        if (estadoSpan) estadoSpan.textContent = "Cursado";
+        estadoSpan.style.color = "#f39c12"; // naranja
+
     } catch (err) {
         showNotification('No se pudo cambiar a cursado: ' + err.message, 'error');
         console.error('Error al marcar cursado:', err);
     }
 };
-
 
         // Configurar event listeners
         function setupEventListeners() {

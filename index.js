@@ -29,14 +29,13 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cookieParser());
 
-// Usar la carpeta 'views' para archivos estáticos (HTML, CSS, JS)
 app.use(express.static(path.join(__dirname, "views")));
 
 // Usar las rutas de usuario
 app.use("/users", userRoutes);
 app.use('/materias', materiaRoutes);
 app.use('/previas', previaRoutes);
-app.use('/estudiantes', estudianteRoutes); // 👈 agrega esta línea
+app.use('/estudiantes', estudianteRoutes); 
 
 // Middleware para proteger rutas (verificar JWT)
 function authenticateJWT(req, res, next) {

@@ -166,11 +166,19 @@ exports.getCalendario = async (req, res) => {
 
 exports.cambiarEstadoMateria = async (req, res) => {
     try {
-        const userId = getUserIdFromToken(req);
-        if (!userId) return res.status(401).json({ message: 'Token inválido o no proporcionado' });
+        const currentUserId = getUserIdFromToken(req);
+        if (!currentUserId) return res.status(401).json({ message: 'Token inválido o no proporcionado' });
+
+        const currentUser = await User.findById(currentUserId);
+        if (!currentUser) return res.status(404).json({ message: 'Usuario no encontrado' });
+
+        // Solo admin puede cambiar estado de otros
+        if (!['Administrador', 'administrador', 'admin'].includes(currentUser.rol)) {
+            return res.status(403).json({ message: 'Solo administradores pueden cambiar estados' });
+        }
 
         const materiaId = req.params.id;
-        const { estado } = req.body;
+        const { userId, estado } = req.body;
 
         // Validar estado permitido
         const estadosPermitidos = ['Pendiente', 'Cursado', 'En Curso', 'Aprobado'];
@@ -179,7 +187,7 @@ exports.cambiarEstadoMateria = async (req, res) => {
         }
 
         const user = await User.findById(userId);
-        if (!user) return res.status(404).json({ message: 'Usuario no encontrado' });
+        if (!user) return res.status(404).json({ message: 'Estudiante no encontrado' });
 
         const materiaObj = user.materias.find(m => m.materia.toString() === materiaId);
         if (!materiaObj) {
@@ -189,9 +197,10 @@ exports.cambiarEstadoMateria = async (req, res) => {
         materiaObj.estado = estado;
         await user.save();
 
-        res.json({ message: 'Estado actualizado correctamente' });
+        res.json({ message: `Estado actualizado a ${estado}` });
     } catch (err) {
         console.error('Error al cambiar estado:', err);
         res.status(500).json({ message: 'Error al cambiar estado', error: err.message });
     }
 };
+

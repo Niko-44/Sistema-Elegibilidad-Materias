@@ -8,7 +8,7 @@ router.get('/creditosAprobados', estudianteController.getCreditosAprobados);
 router.post('/inscribir/:id', estudianteController.inscribirMateria);
 router.get('/historial', estudianteController.historialMaterias);
 router.post('/aprobar/:id', estudianteController.aprobarMateria);
-router.put('/cambiar-estado/:id', estudianteController.cambiarEstadoMateria);
+router.post('/cambiarEstado/:id', estudianteController.cambiarEstadoMateria);
 
 router.get('/calendario', authMiddleware, estudianteController.getCalendario);
 

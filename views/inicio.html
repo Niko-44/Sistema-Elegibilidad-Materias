@@ -640,6 +640,10 @@
                     <option value="semester">Ordenar por semestre</option>
                     <option value="credits">Ordenar por créditos</option>
                 </select>
+                <select class="filter-select" id="inscribibleFilter">
+                    <option value="">Todas las materias</option>
+                    <option value="inscribibles">Solo materias en las que puedo inscribirme</option>
+                </select>
             </div>
         </div>
 
@@ -682,6 +686,7 @@
         const token = localStorage.getItem('token');
         let userRole = '';
         let allMaterias = [];
+        let userMaterias = []; // Guardar historial del usuario
 
         // Decodificar el token JWT
         function parseJwt(token) {
@@ -827,16 +832,24 @@
         }
 
         // Filtrar materias basado en búsqueda y selecciones
-        function filterMaterias() {
+        async function filterMaterias() {
             const searchText = document.getElementById('searchInput').value.toLowerCase();
             const semesterFilter = document.getElementById('semesterFilter').value;
             const sortBy = document.getElementById('sortSelect').value;
+            const inscribibleFilter = document.getElementById('inscribibleFilter').value;
+
+            // Asegúrate de tener el historial del usuario
+            if (userMaterias.length === 0) await fetchUserMaterias();
 
             let filtered = allMaterias.filter(m => {
                 const matchesSearch = m.nombre.toLowerCase().includes(searchText) ||
                     m.codigo.toLowerCase().includes(searchText);
                 const matchesSemester = !semesterFilter || m.semestre == semesterFilter;
-                return matchesSearch && matchesSemester;
+                let matchesInscribible = true;
+                if (inscribibleFilter === 'inscribibles') {
+                    matchesInscribible = puedeInscribirse(m);
+                }
+                return matchesSearch && matchesSemester && matchesInscribible;
             });
 
             // Ordenar
@@ -1071,6 +1084,7 @@
             document.getElementById('searchInput').addEventListener('input', filterMaterias);
             document.getElementById('semesterFilter').addEventListener('change', filterMaterias);
             document.getElementById('sortSelect').addEventListener('change', filterMaterias);
+            document.getElementById('inscribibleFilter').addEventListener('change', filterMaterias);
 
             // Botón de cerrar sesión
             document.getElementById('logoutBtn').addEventListener('click', function () {
@@ -1108,11 +1122,43 @@
             });
         }
 
+        // Obtén el historial del usuario al cargar la página
+        async function fetchUserMaterias() {
+            try {
+                const res = await fetch('/estudiantes/historial', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                userMaterias = await res.json();
+            } catch (err) {
+                userMaterias = [];
+            }
+        }
+
+        // Determina si el usuario puede inscribirse en una materia
+        function puedeInscribirse(materia) {
+            // Si ya está inscrito, no puede inscribirse
+            if (userMaterias.some(m => m.materia && m.materia._id === materia._id)) return false;
+
+            // Si no tiene previas, puede inscribirse
+            if (!materia.previas || materia.previas.length === 0) return true;
+
+            // Verifica que todas las previas estén aprobadas
+            for (const previa of materia.previas) {
+                const previaId = previa.previa?._id;
+                const previaAprobada = userMaterias.find(m =>
+                    m.materia && m.materia._id === previaId && m.estado === 'Aprobado'
+                );
+                if (!previaAprobada) return false;
+            }
+            return true;
+        }
+
         // Inicializar la página
         document.addEventListener('DOMContentLoaded', function () {
             checkAdminRole();
             setupEventListeners();
             loadMaterias();
+            document.getElementById('inscribibleFilter').addEventListener('change', filterMaterias);
         });
     </script>
 </body>

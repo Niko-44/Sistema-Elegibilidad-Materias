@@ -1064,24 +1064,25 @@
 
                             // Solo líneas que empiezan con el código de materia
                             if (/^[A-Z]{3,}_[A-Z0-9]+/.test(line)) {
-                                // Si la línea siguiente parece continuar el nombre, únela
+                                // Unir líneas si el nombre se corta
                                 while (
                                     idx + 1 < lines.length &&
-                                    !/^\d+\s+[1-6]S/.test(lines[idx + 1]) && // la siguiente línea no empieza con créditos y semestre
-                                    !/^[A-Z]{3,}_[A-Z0-9]+/.test(lines[idx + 1]) // ni con otro código
+                                    !/^\d+\s+[1-6]S/.test(lines[idx + 1]) &&
+                                    !/^[A-Z]{3,}_[A-Z0-9]+/.test(lines[idx + 1])
                                 ) {
                                     line += ' ' + lines[++idx].trim();
                                 }
 
-                                // Regex para extraer datos
-                                // Ejemplo: INF_MDL1 Matemática Discreta y Lógica 1                           12   1S  B  23-1S  1  CUR  Muy bueno        4,00
-                                const match = line.match(/^([A-Z]{3,}_[A-Z0-9]+)\s+(.+?)\s+(\d+)\s+([1-6]S)/);
+                                // Regex para extraer datos y estado
+                                // Ejemplo: INF_MDL1 Matemática Discreta y Lógica 1 12   1S  B  23-1S  1  CUR  Muy bueno        4,00
+                                const match = line.match(/^([A-Z]{3,}_[A-Z0-9]+)\s+(.+?)\s+(\d+)\s+([1-6]S)\s+[A-Z]\s+\d{2}-[1-2]S\s+\d+\s+(CUR|1PC)/);
                                 if (match) {
                                     materiasPDF.push({
                                         codigo: match[1].trim(),
                                         nombre: match[2].replace(/\s+/g, ' ').trim(),
                                         creditos: parseInt(match[3], 10),
-                                        semestre: match[4].replace('S', '')
+                                        semestre: match[4].replace('S', ''),
+                                        estado: match[5] === 'CUR' ? 'Aprobado' : 'Cursado'
                                     });
                                 }
                             }
@@ -1100,7 +1101,7 @@
                     materiasPDF.forEach(mpdf => {
                         const materiaBD = allMaterias.find(m => m.codigo === mpdf.codigo);
                         if (materiaBD) {
-                            materiasEncontradas.push(materiaBD._id);
+                            materiasEncontradas.push({ id: materiaBD._id, estado: mpdf.estado });
                         }
                     });
 
@@ -1109,7 +1110,7 @@
                         return;
                     }
 
-                    // Enviar al backend para asignar como aprobadas
+                    // Enviar al backend para asignar el estado correspondiente
                     try {
                         const res = await fetch('/estudiantes/importar-aprobadas', {
                             method: 'POST',

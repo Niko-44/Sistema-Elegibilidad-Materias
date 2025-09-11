@@ -255,18 +255,19 @@ exports.importarAprobadas = async (req, res) => {
         if (!user) return res.status(404).json({ message: 'Usuario no encontrado' });
 
         let count = 0;
-        for (const materiaId of materias) {
-            // Si ya está, actualiza a 'Aprobado'
+        for (const materiaObj of materias) {
+            const materiaId = materiaObj.id;
+            const estado = materiaObj.estado || 'Aprobado';
             let matObj = user.materias.find(m => m.materia.toString() === materiaId);
             if (matObj) {
-                matObj.estado = 'Aprobado';
+                matObj.estado = estado;
             } else {
-                user.materias.push({ materia: materiaId, estado: 'Aprobado' });
+                user.materias.push({ materia: materiaId, estado });
             }
             count++;
         }
         await user.save();
-        res.json({ message: `${count} materias importadas como aprobadas` });
+        res.json({ message: `${count} materias importadas correctamente` });
     } catch (err) {
         res.status(500).json({ message: 'Error al importar', error: err.message });
     }

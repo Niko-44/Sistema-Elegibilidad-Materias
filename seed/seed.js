@@ -27,7 +27,7 @@ const materias = [
 ];
 
 async function seedMaterias() {
-  await mongoose.connect('mongodb://localhost:27017/sistema_elegibilidad_materias'); // Cambia la URI si es necesario
+  await mongoose.connect('mongodb+srv://nk:pruebadb@cluster0.nsf3ww2.mongodb.net/sistemaMaterias?retryWrites=true&w=majority&appName=Cluster0'); // Cambia la URI si es necesario
   await Materia.deleteMany({});
   for (const mat of materias) {
     await Materia.create({

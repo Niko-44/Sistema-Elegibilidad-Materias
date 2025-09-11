@@ -48,10 +48,10 @@
             padding: 20px;
         }
 
-        /* Header */
         .header {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
+            /* 🔹 Centrar contenido */
             align-items: center;
             background: var(--bg-white);
             padding: 20px 30px;
@@ -64,6 +64,8 @@
             display: flex;
             align-items: center;
             gap: 12px;
+            justify-content: center;
+            /* 🔹 Centrar logo + título */
         }
 
         .logo i {
@@ -497,10 +499,6 @@
                 <i class="fas fa-graduation-cap"></i>
                 <h1>Estudiantes Inscritos</h1>
             </div>
-            <div class="user-info">
-                <span id="userRole" class="user-badge"><i class="fas fa-user-circle"></i> Cargando...</span>
-                <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</button>
-            </div>
         </div>
 
         <button class="back-btn" onclick="window.location.href='/inicio.html'"><i class="fas fa-arrow-left"></i> Volver
@@ -559,7 +557,8 @@
                 </thead>
                 <tbody id="estudiantesTableBody"></tbody>
             </table>
-            <div id="paginacionEstudiantes" style="margin: 15px 0; display: flex; justify-content: center; gap: 10px;"></div>
+            <div id="paginacionEstudiantes" style="margin: 15px 0; display: flex; justify-content: center; gap: 10px;">
+            </div>
 
             <div class="empty-state" id="estudiantesEmpty">
                 <i class="fas fa-users empty-icon"></i>
@@ -605,11 +604,7 @@
         function loadUserInfo() {
             if (!token) return window.location.href = '/login.html';
             const decoded = parseJwt(token);
-            if (decoded) {
-                const nombre = decoded.nombre || 'Usuario';
-                const rol = decoded.role || 'Usuario';
-                document.getElementById('userRole').innerHTML = `<i class="fas fa-user-circle"></i> ${nombre} (${rol})`;
-            }
+            
         }
 
 
@@ -647,6 +642,12 @@
                     item.classList.add('active');
                     selectedMateriaId = item.dataset.id;
                     loadEstudiantes(selectedMateriaId);
+
+                    // 🔽 Scroll automático a la tabla
+                    setTimeout(() => {
+                        document.getElementById('estudiantesContainer')
+                            .scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 300); // pequeño delay para que cargue el contenedor
                 });
             });
         }
@@ -692,95 +693,95 @@
             }
         }
 
-function renderEstudiantes(estudiantes) {
-    estudiantesTotales = estudiantes;
-    paginaActual = 1; // reiniciamos a la primera página cada vez que seleccionas una materia
-    renderPagina(paginaActual);
-}
-
-function renderPagina(pagina) {
-    const tbody = document.getElementById('estudiantesTableBody');
-    const totalPaginas = Math.ceil(estudiantesTotales.length / estudiantesPorPagina);
-
-    const inicio = (pagina - 1) * estudiantesPorPagina;
-    const fin = inicio + estudiantesPorPagina;
-    const estudiantesPagina = estudiantesTotales.slice(inicio, fin);
-
-    tbody.innerHTML = estudiantesPagina.map(e => {
-        let botones = '';
-
-        // 🔹 Solo mostrar "Cursado" si NO está cursado
-        if (e.estado !== 'Cursado' && e.estado !== 'Aprobado') {
-            botones += `<button class="action-btn cursado-btn" data-id="${e.id}">
-                            <i class="fas fa-book"></i> Cursado
-                        </button>`;
-        } else {
-            botones += `<button class="action-btn cursado-btn finalizado" disabled>
-                            <i class="fas fa-book"></i> Cursado
-                        </button>`;
+        function renderEstudiantes(estudiantes) {
+            estudiantesTotales = estudiantes;
+            paginaActual = 1; // reiniciamos a la primera página cada vez que seleccionas una materia
+            renderPagina(paginaActual);
         }
 
-        // 🔹 Solo mostrar "Aprobar" si ya está en Cursado
-        if (e.estado === 'Cursado') {
-            botones += `<button class="action-btn aprobar-btn" data-id="${e.id}">
+        function renderPagina(pagina) {
+            const tbody = document.getElementById('estudiantesTableBody');
+            const totalPaginas = Math.ceil(estudiantesTotales.length / estudiantesPorPagina);
+
+            const inicio = (pagina - 1) * estudiantesPorPagina;
+            const fin = inicio + estudiantesPorPagina;
+            const estudiantesPagina = estudiantesTotales.slice(inicio, fin);
+
+            tbody.innerHTML = estudiantesPagina.map(e => {
+                let botones = '';
+
+                // 🔹 Solo mostrar "Cursado" si NO está cursado
+                if (e.estado !== 'Cursado' && e.estado !== 'Aprobado') {
+                    botones += `<button class="action-btn cursado-btn" data-id="${e.id}">
+                            <i class="fas fa-book"></i> Cursado
+                        </button>`;
+                } else {
+                    botones += `<button class="action-btn cursado-btn finalizado" disabled>
+                            <i class="fas fa-book"></i> Cursado
+                        </button>`;
+                }
+
+                // 🔹 Solo mostrar "Aprobar" si ya está en Cursado
+                if (e.estado === 'Cursado') {
+                    botones += `<button class="action-btn aprobar-btn" data-id="${e.id}">
                             <i class="fas fa-check"></i> Aprobar
                         </button>`;
-        } else if (e.estado === 'Aprobado') {
-            botones += `<button class="action-btn aprobar-btn finalizado" disabled>
+                } else if (e.estado === 'Aprobado') {
+                    botones += `<button class="action-btn aprobar-btn finalizado" disabled>
                             <i class="fas fa-check"></i> Aprobado
                         </button>`;
-        }
+                }
 
-        return `
+                return `
         <tr>
             <td>${e.nombre}</td>
             <td>${e.email}</td>
             <td><span class="estado-badge estado-${e.estado.toLowerCase().replace(' ', '-')}">${e.estado}</span></td>
             <td>${botones}</td>
         </tr>`;
-    }).join('');
+            }).join('');
 
-    // Eventos de botones
-    document.querySelectorAll('.cursado-btn:not(.finalizado)').forEach(btn => btn.addEventListener('click', e => {
-        e.stopPropagation();
-        cambiarEstadoEstudiante(btn.dataset.id, 'Cursado');
-    }));
-    document.querySelectorAll('.aprobar-btn:not(.finalizado)').forEach(btn => btn.addEventListener('click', e => {
-        e.stopPropagation();
-        cambiarEstadoEstudiante(btn.dataset.id, 'Aprobado');
-    }));
+            // Eventos de botones
+            document.querySelectorAll('.cursado-btn:not(.finalizado)').forEach(btn => btn.addEventListener('click', e => {
+                e.stopPropagation();
+                cambiarEstadoEstudiante(btn.dataset.id, 'Cursado');
+            }));
+            document.querySelectorAll('.aprobar-btn:not(.finalizado)').forEach(btn => btn.addEventListener('click', e => {
+                e.stopPropagation();
+                cambiarEstadoEstudiante(btn.dataset.id, 'Aprobado');
+            }));
 
-    renderPaginacion(totalPaginas);
-}
+            renderPaginacion(totalPaginas);
+        }
 
-async function cambiarEstadoEstudiante(estudianteId, nuevoEstado) {
-    try {
-        if (!selectedMateriaId) return;
+        async function cambiarEstadoEstudiante(estudianteId, nuevoEstado) {
+            try {
+                if (!selectedMateriaId) return;
 
-        const res = await fetch(`/estudiantes/cambiar-estado/${selectedMateriaId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ userId: estudianteId, estado: nuevoEstado })
-        });
+                const res = await fetch(`/estudiantes/cambiar-estado/${selectedMateriaId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ userId: estudianteId, estado: nuevoEstado })
+                });
 
-        if (!res.ok) throw new Error();
+                if (!res.ok) throw new Error();
 
-        // Actualizar el estado localmente para evitar recargar todo
-        estudiantesTotales = estudiantesTotales.map(e => {
-            if (e.id === estudianteId) e.estado = nuevoEstado;
-            return e;
-        });
+                // Actualizar el estado localmente para evitar recargar todo
+                estudiantesTotales = estudiantesTotales.map(e => {
+                    if (e.id === estudianteId) e.estado = nuevoEstado;
+                    return e;
+                });
 
-        showNotification(`Estado cambiado a ${nuevoEstado} correctamente`);
-        renderPagina(paginaActual);
-    } catch (e) {
-        console.error(e);
-        showNotification('Error al cambiar estado', 'error');
-    }
-}
+                showNotification(`Estado cambiado a ${nuevoEstado} correctamente`);
+                renderPagina(paginaActual);
+            } catch (e) {
+                console.error(e);
+                showNotification('Error al cambiar estado', 'error');
+            }
+        }
 
         async function cambiarEstadoEstudiante(estudianteId, nuevoEstado) {
             try {
@@ -816,10 +817,7 @@ async function cambiarEstadoEstudiante(estudianteId, nuevoEstado) {
             renderMaterias(filtradas);
         }
 
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-            localStorage.removeItem('token');
-            window.location.href = '/login.html';
-        });
+       
 
         document.addEventListener('DOMContentLoaded', () => {
             loadUserInfo();
@@ -829,29 +827,29 @@ async function cambiarEstadoEstudiante(estudianteId, nuevoEstado) {
         });
 
         function renderPaginacion(totalPaginas) {
-    const container = document.getElementById('paginacionEstudiantes');
-    container.innerHTML = '';
+            const container = document.getElementById('paginacionEstudiantes');
+            container.innerHTML = '';
 
-    if (totalPaginas <= 1) return; // no mostrar si hay una sola página
+            if (totalPaginas <= 1) return; // no mostrar si hay una sola página
 
-    for (let i = 1; i <= totalPaginas; i++) {
-        const btn = document.createElement('button');
-        btn.textContent = i;
-        btn.style.padding = '6px 12px';
-        btn.style.border = '1px solid var(--primary-light)';
-        btn.style.borderRadius = '6px';
-        btn.style.background = (i === paginaActual) ? 'var(--primary-color)' : 'var(--bg-white)';
-        btn.style.color = (i === paginaActual) ? 'white' : 'var(--text-color)';
-        btn.style.cursor = 'pointer';
+            for (let i = 1; i <= totalPaginas; i++) {
+                const btn = document.createElement('button');
+                btn.textContent = i;
+                btn.style.padding = '6px 12px';
+                btn.style.border = '1px solid var(--primary-light)';
+                btn.style.borderRadius = '6px';
+                btn.style.background = (i === paginaActual) ? 'var(--primary-color)' : 'var(--bg-white)';
+                btn.style.color = (i === paginaActual) ? 'white' : 'var(--text-color)';
+                btn.style.cursor = 'pointer';
 
-        btn.addEventListener('click', () => {
-            paginaActual = i;
-            renderPagina(paginaActual);
-        });
+                btn.addEventListener('click', () => {
+                    paginaActual = i;
+                    renderPagina(paginaActual);
+                });
 
-        container.appendChild(btn);
-    }
-}
+                container.appendChild(btn);
+            }
+        }
 
     </script>
 

@@ -865,51 +865,58 @@
             }
         }
 
-        // Verificar rol de usuario y mostrar opciones de administrador
-        async function checkAdminRole() {
-            if (!token) {
-                showNotification('Debe iniciar sesión para acceder', 'error');
-                setTimeout(() => { window.location.href = '/login'; }, 2000);
-                return;
-            }
+       // Verificar rol de usuario y mostrar opciones de administrador
+async function checkAdminRole() {
+    if (!token) {
+        showNotification('Debe iniciar sesión para acceder', 'error');
+        setTimeout(() => { window.location.href = '/login'; }, 2000);
+        return;
+    }
 
-            const decodedToken = parseJwt(token);
-            if (!decodedToken) {
-                showNotification('Error de autenticación', 'error');
-                return;
-            }
+    const decodedToken = parseJwt(token);
+    if (!decodedToken) {
+        showNotification('Error de autenticación', 'error');
+        return;
+    }
 
-            userRole = (decodedToken.rol || decodedToken.role || decodedToken.tipo || '').trim().toLowerCase();
-            const nombreUsuario = decodedToken.nombre || decodedToken.name || '';
+    userRole = (decodedToken.rol || decodedToken.role || decodedToken.tipo || '').trim().toLowerCase();
+    const nombreUsuario = decodedToken.nombre || decodedToken.name || '';
 
-            // Obtener créditos aprobados
-            let creditosAprobados = 0;
-            try {
-                const res = await fetch('/estudiantes/creditosAprobados', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const data = await res.json();
-                creditosAprobados = data.creditos || 0;
-            } catch (err) {
-                creditosAprobados = 0;
-            }
-
-            document.getElementById('userRole').innerHTML =
-                `<i class="fas fa-user-circle"></i> ${nombreUsuario ? nombreUsuario + ' - ' : ''}${userRole} <span style="color:white;font-weight:600;">(${creditosAprobados} créditos aprobados)</span>`;
-
-            const adminRoles = ['admin', 'administrador', 'administrator', 'superadmin'];
-            if (adminRoles.includes(userRole)) {
-                document.getElementById('adminPanel').style.display = 'block';
-            }
-
-            // Mostrar botón de calendario solo si es estudiante
-            if (userRole === 'estudiante') {
-                const btnCalendario = document.getElementById('verCalendarioBtn');
-                if (btnCalendario) btnCalendario.style.display = 'inline-block';
-            }
-            checkAdminPermissions();
+    let creditosAprobados = 0;
+    // Solo obtener créditos si NO es admin
+    const adminRoles = ['admin', 'administrador', 'administrator', 'superadmin'];
+    if (!adminRoles.includes(userRole)) {
+        try {
+            const res = await fetch('/estudiantes/creditosAprobados', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            creditosAprobados = data.creditos || 0;
+        } catch (err) {
+            creditosAprobados = 0;
         }
+    }
 
+    // Construir texto del usuario
+    let userInfo = `<i class="fas fa-user-circle"></i> ${nombreUsuario ? nombreUsuario + ' - ' : ''}${userRole}`;
+    if (!adminRoles.includes(userRole)) {
+        userInfo += ` <span style="color:white;font-weight:600;">(${creditosAprobados} créditos aprobados)</span>`;
+    }
+    document.getElementById('userRole').innerHTML = userInfo;
+
+    // Mostrar panel admin
+    if (adminRoles.includes(userRole)) {
+        document.getElementById('adminPanel').style.display = 'block';
+    }
+
+    // Mostrar calendario solo a estudiantes
+    if (userRole === 'estudiante') {
+        const btnCalendario = document.getElementById('verCalendarioBtn');
+        if (btnCalendario) btnCalendario.style.display = 'inline-block';
+    }
+
+    checkAdminPermissions();
+}
 
         // Funciones Editar / Eliminar
         function editarMateria(id) {

@@ -58,12 +58,12 @@ app.get("/createMateria.html", authMiddleware, (req, res) => {
   res.sendFile(path.join(__dirname, "views", "createMateria.html"));
 });
 
-app.get("/createMateria.html", authMiddleware, (req, res) => {
-  res.sendFile(path.join(__dirname, "views", "editMateria.html"));
-});
-
 app.get("/historialMateriasEstudiante.html", authMiddleware, (req, res) => {
   res.sendFile(path.join(__dirname, "views", "historialMateriasEstudiante.html"));
+});
+
+app.get('/estudiantesInscriptos.html',authMiddleware, (req, res) => {
+    res.sendFile(path.join(__dirname, 'views', 'estudiantesInscriptos.html'));
 });
 
 // Iniciar el servidor

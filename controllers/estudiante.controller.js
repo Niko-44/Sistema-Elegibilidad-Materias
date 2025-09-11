@@ -101,20 +101,17 @@ exports.getCreditosAprobados = async (req, res) => {
     }
 };
 
-// Aprobar una materia (solo admin)
 exports.aprobarMateria = async (req, res) => {
     try {
-        const { userId: studentId } = req.body; // ID del estudiante a aprobar
+        const { userId: studentId } = req.body; 
         const materiaId = req.params.id;
 
-        // Verificar permisos de administrador
         const currentUserId = getUserIdFromToken(req);
         if (!currentUserId) return res.status(401).json({ message: 'Token inválido o no proporcionado' });
 
         const currentUser = await User.findById(currentUserId);
         if (!currentUser) return res.status(404).json({ message: 'Usuario no encontrado' });
 
-        // Verificar si es administrador
         if (!['Administrador', 'administrador', 'admin'].includes(currentUser.rol)) {
             return res.status(403).json({ message: 'Solo administradores pueden aprobar materias' });
         }
@@ -124,24 +121,31 @@ exports.aprobarMateria = async (req, res) => {
         const user = await User.findById(studentId);
         if (!user) return res.status(404).json({ message: 'Estudiante no encontrado' });
 
-        // Buscar la materia en el array del usuario
         const materiaObj = user.materias.find(m => 
             m.materia && m.materia.toString() === materiaId
         );
-        
-        if (!materiaObj) {
-            return res.status(404).json({ message: 'El estudiante no está inscrito en esta materia' });
+
+        if (!materiaObj) return res.status(404).json({ message: 'El estudiante no está inscrito en esta materia' });
+
+        // Actualizar estado
+        materiaObj.estado = 'Aprobado';
+
+        // Obtener créditos de la materia
+        const materia = await Materia.findById(materiaId);
+        if (materia && materia.creditos) {
+            // Si usas un campo en el usuario, lo sumas
+            user.creditosAprobados = (user.creditosAprobados || 0) + materia.creditos;
         }
 
-        materiaObj.estado = 'Aprobado';
         await user.save();
 
-        res.json({ message: 'Materia aprobada correctamente' });
+        res.json({ message: 'Materia aprobada y créditos actualizados correctamente' });
     } catch (err) {
         console.error('Error al aprobar materia:', err);
         res.status(500).json({ message: 'Error al aprobar materia', error: err.message });
     }
 };
+
 
 exports.getCalendario = async (req, res) => {
     const userId = req.user.userId;
@@ -212,3 +216,29 @@ exports.cambiarEstadoMateria = async (req, res) => {
     }
 };
 
+exports.getEstudiantesPorMateria = async (req, res) => {
+    try {
+        const materiaId = req.params.id;
+
+        // Buscar usuarios que tengan esta materia
+        const estudiantes = await User.find({ "materias.materia": materiaId })
+            .select('nombre email materias')
+            .lean();
+
+        // Mapear solo el estado de la materia específica
+        const resultado = estudiantes.map(est => {
+            const mat = est.materias.find(m => m.materia.toString() === materiaId);
+            return {
+                id: est._id,
+                nombre: est.nombre,
+                email: est.email,
+                estado: mat.estado
+            };
+        });
+
+        res.json({ estudiantes: resultado });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Error al obtener estudiantes', error: err.message });
+    }
+};

@@ -12,6 +12,8 @@ router.post('/cambiarEstado/:id', estudianteController.cambiarEstadoMateria);
 router.put('/cambiar-estado/:id', estudianteController.cambiarEstadoMateria);
 
 router.get('/calendario', authMiddleware, estudianteController.getCalendario);
+router.get('/:id/estudiantes', estudianteController.getEstudiantesPorMateria);
+
 
 
 module.exports = router;

@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Académico - Estudiantes Inscritos</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        /* Variables de color y estilos base */
+        :root {
+            --primary-color: #19b0e1;
+            --primary-dark: #3a56d4;
+            --primary-light: #e6eeff;
+            --secondary-color: #7209b7;
+            --accent-color: #f72585;
+            --success-color: #4cc9f0;
+            --warning-color: #f9c74f;
+            --error-color: #f94144;
+            --text-color: #2b2d42;
+            --text-light: #6c757d;
+            --bg-light: #f8f9fa;
+            --bg-white: #ffffff;
+            --border-radius: 12px;
+            --border-radius-sm: 8px;
+            --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            color: var(--text-color);
+            min-height: 100vh;
+        }
+
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-white);
+            padding: 20px 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo i {
+            font-size: 28px;
+            color: var(--primary-color);
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-badge {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .logout-btn {
+            background: var(--bg-light);
+            border: none;
+            color: var(--text-light);
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: var(--transition);
+        }
+
+        .logout-btn:hover {
+            background: var(--primary-light);
+            color: var(--primary-color);
+        }
+
+        /* Botón de volver */
+        .back-btn {
+            background: var(--primary-light);
+            color: var(--primary-color);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            transition: var(--transition);
+        }
+
+        .back-btn:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* Sección de búsqueda */
+        .search-section {
+            background: var(--bg-white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 30px;
+            padding: 20px;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 14px 20px 14px 45px;
+            border: 2px solid var(--primary-light);
+            border-radius: var(--border-radius-sm);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-light);
+        }
+
+        .filter-select {
+            padding: 14px 20px;
+            border: 2px solid var(--primary-light);
+            border-radius: var(--border-radius-sm);
+            font-size: 1rem;
+            background: var(--bg-white);
+            min-width: 180px;
+            cursor: pointer;
+        }
+
+        /* Lista de materias */
+        .materias-list {
+            background: var(--bg-white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .materia-item {
+            padding: 20px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .materia-item:hover {
+            background: var(--primary-light);
+        }
+
+        .materia-item.active {
+            background: var(--primary-light);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .materia-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .materia-codigo {
+            font-size: 0.85rem;
+            color: var(--primary-color);
+            background: var(--primary-light);
+            padding: 5px 12px;
+            border-radius: 30px;
+            font-weight: 500;
+        }
+
+        .materia-semester {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .materia-title {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        .materia-details {
+            display: flex;
+            gap: 15px;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        /* Estudiantes */
+        .estudiantes-container {
+            background: var(--bg-white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+            display: none;
+        }
+
+        .estudiantes-header {
+            padding: 20px;
+            background: var(--primary-light);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .estudiantes-title {
+            font-size: 1.3rem;
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .estudiantes-subtitle {
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .estudiantes-table {
+            width: 100%;
+            border-collapse: collapse;
+            display: none;
+        }
+
+        .estudiantes-table th,
+        .estudiantes-table td {
+            padding: 15px 20px;
+            text-align: left;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .estudiantes-table th {
+            background: var(--bg-light);
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .estudiantes-table tr:hover {
+            background: var(--bg-light);
+        }
+
+        .estado-badge {
+            padding: 5px 12px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .estado-en-curso {
+            background: rgba(243, 156, 18, 0.2);
+            color: #f39c12;
+        }
+
+        .estado-oo {
+            background: rgba(76, 201, 240, 0.2);
+            color: #3498db;
+        }
+
+        .estado-pendiente {
+            background: rgba(108, 117, 125, 0.2);
+            color: #6c757d;
+        }
+
+        .action-btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+            font-weight: 500;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            margin-right: 5px;
+        }
+
+        .aprobar-btn {
+            background: rgba(46, 204, 113, 0.1);
+            color: #27ae60;
+        }
+
+        .aprobar-btn:hover {
+            background: #27ae60;
+            color: white;
+        }
+
+        .cursar-btn {
+            background: rgba(243, 156, 18, 0.1);
+            color: #f39c12;
+        }
+
+        .cursar-btn:hover {
+            background: #f39c12;
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            color: #dce1e8;
+        }
+
+        .empty-text {
+            color: var(--text-light);
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+        }
+
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 60px 20px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid var(--primary-light);
+            border-top: 5px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Notificación */
+        .notification {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            padding: 15px 25px;
+            border-radius: var(--border-radius-sm);
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateX(100px);
+            transition: opacity 0.3s, transform 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .notification.success {
+            background: var(--success-color);
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .notification.error {
+            background: var(--error-color);
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .user-info {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .search-container {
+                flex-direction: column;
+            }
+
+            .filter-select {
+                width: 100%;
+            }
+
+            .materia-header,
+            .materia-details {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .estudiantes-table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+
+        .action-btn.finalizado {
+            opacity: 0.7;
+            cursor: default;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .aprobar-btn.finalizado {
+            background: #2ecc71;
+            /* verde más intenso */
+            color: white;
+        }
+
+        .cursar-btn.finalizado {
+            background: #f1c40f;
+            /* amarillo más intenso */
+            color: white;
+        }
+
+        .cursado-btn.finalizado {
+            background: #3498db;
+            /* azul para cursado */
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <div class="header">
+            <div class="logo">
+                <i class="fas fa-graduation-cap"></i>
+                <h1>Estudiantes Inscritos</h1>
+            </div>
+            <div class="user-info">
+                <span id="userRole" class="user-badge"><i class="fas fa-user-circle"></i> Cargando...</span>
+                <button class="logout-btn" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</button>
+            </div>
+        </div>
+
+        <button class="back-btn" onclick="window.location.href='/inicio.html'"><i class="fas fa-arrow-left"></i> Volver
+            al inicio</button>
+
+        <div class="search-section">
+            <div class="search-container">
+                <div class="search-box">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="search-input" id="searchMateriaInput" placeholder="Buscar materias...">
+                </div>
+                <select class="filter-select" id="semesterFilter">
+                    <option value="">Todos los semestres</option>
+                    <option value="1">Semestre 1</option>
+                    <option value="2">Semestre 2</option>
+                    <option value="3">Semestre 3</option>
+                    <option value="4">Semestre 4</option>
+                    <option value="5">Semestre 5</option>
+                    <option value="6">Semestre 6</option>
+                </select>
+                <select class="filter-select" id="estadoFilter">
+                    <option value="">Todos los estados</option>
+                    <option value="En Curso">En Curso</option>
+                    <option value="Aprobado">Aprobado</option>
+                    <option value="Cursado">Cursado</option>
+                    <option value="Pendiente">Pendiente</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="materias-list" id="materiasList">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Cargando materias...</p>
+            </div>
+        </div>
+
+        <div class="estudiantes-container" id="estudiantesContainer">
+            <div class="estudiantes-header">
+                <h3 class="estudiantes-title" id="estudiantesTitle">Estudiantes inscritos</h3>
+                <p class="estudiantes-subtitle" id="estudiantesSubtitle">Selecciona una materia para ver sus estudiantes
+                </p>
+            </div>
+            <div class="loading" id="estudiantesLoading">
+                <div class="spinner"></div>
+                <p>Cargando estudiantes...</p>
+            </div>
+            <table class="estudiantes-table" id="estudiantesTable">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Email</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="estudiantesTableBody"></tbody>
+            </table>
+            <div id="paginacionEstudiantes" style="margin: 15px 0; display: flex; justify-content: center; gap: 10px;"></div>
+
+            <div class="empty-state" id="estudiantesEmpty">
+                <i class="fas fa-users empty-icon"></i>
+                <p class="empty-text">No hay estudiantes inscritos en esta materia</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        let userRole = '';
+        let allMaterias = [];
+        let selectedMateriaId = null;
+        let estudiantesPorPagina = 10;
+        let paginaActual = 1;
+        let estudiantesTotales = [];
+
+
+        // Decodificar JWT
+        function parseJwt(token) {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+                return JSON.parse(jsonPayload);
+            } catch (e) {
+                console.error('Error decoding token:', e);
+                return null;
+            }
+        }
+
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            setTimeout(() => notification.className = 'notification', 3000);
+        }
+
+        function loadUserInfo() {
+            if (!token) return window.location.href = '/login.html';
+            const decoded = parseJwt(token);
+            if (decoded) {
+                const nombre = decoded.nombre || 'Usuario';
+                const rol = decoded.role || 'Usuario';
+                document.getElementById('userRole').innerHTML = `<i class="fas fa-user-circle"></i> ${nombre} (${rol})`;
+            }
+        }
+
+
+        async function loadMaterias() {
+            try {
+                const res = await fetch('/materias', { headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) throw new Error('Error al cargar materias');
+                allMaterias = await res.json();
+                renderMaterias(allMaterias);
+            } catch (e) {
+                console.error(e);
+                showNotification('Error al cargar materias', 'error');
+            }
+        }
+
+        function renderMaterias(materias) {
+            const list = document.getElementById('materiasList');
+            if (!materias.length) {
+                list.innerHTML = `<div class="empty-state"><i class="fas fa-book empty-icon"></i><p class="empty-text">No hay materias disponibles</p></div>`;
+                return;
+            }
+            list.innerHTML = materias.map(m => `
+        <div class="materia-item" data-id="${m._id}">
+            <div class="materia-header">
+                <span class="materia-codigo">${m.codigo}</span>
+                <span class="materia-semester"><i class="fas fa-calendar-alt"></i> Semestre ${m.semestre}</span>
+            </div>
+            <h3 class="materia-title">${m.nombre}</h3>
+            
+        </div>`).join('');
+
+            document.querySelectorAll('.materia-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    document.querySelectorAll('.materia-item').forEach(m => m.classList.remove('active'));
+                    item.classList.add('active');
+                    selectedMateriaId = item.dataset.id;
+                    loadEstudiantes(selectedMateriaId);
+                });
+            });
+        }
+
+        async function loadEstudiantes(materiaId) {
+            const container = document.getElementById('estudiantesContainer');
+            const loading = document.getElementById('estudiantesLoading');
+            const table = document.getElementById('estudiantesTable');
+            const empty = document.getElementById('estudiantesEmpty');
+            const title = document.getElementById('estudiantesTitle');
+            const subtitle = document.getElementById('estudiantesSubtitle');
+
+            container.style.display = 'block';
+            loading.style.display = 'flex';
+            table.style.display = 'none';
+            empty.style.display = 'none';
+
+            try {
+                const res = await fetch(`/estudiantes/${materiaId}/estudiantes`, { headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) throw new Error('Error al cargar estudiantes');
+                const data = await res.json();
+
+                // Buscar la materia usando _id
+                const materia = allMaterias.find(m => m._id == materiaId);
+                if (!materia) throw new Error('Materia no encontrada');
+
+                title.textContent = `Estudiantes inscritos en ${materia.nombre}`;
+                subtitle.textContent = `Código: ${materia.codigo} | Semestre: ${materia.semestre}`;
+
+                if (data.estudiantes && data.estudiantes.length > 0) {
+                    renderEstudiantes(data.estudiantes);
+                    loading.style.display = 'none';
+                    table.style.display = 'table';
+                } else {
+                    loading.style.display = 'none';
+                    empty.style.display = 'block';
+                }
+            } catch (e) {
+                console.error(e);
+                loading.style.display = 'none';
+                empty.style.display = 'block';
+                showNotification('Error al cargar estudiantes', 'error');
+            }
+        }
+
+function renderEstudiantes(estudiantes) {
+    estudiantesTotales = estudiantes;
+    paginaActual = 1; // reiniciamos a la primera página cada vez que seleccionas una materia
+    renderPagina(paginaActual);
+}
+
+function renderPagina(pagina) {
+    const tbody = document.getElementById('estudiantesTableBody');
+    const totalPaginas = Math.ceil(estudiantesTotales.length / estudiantesPorPagina);
+
+    const inicio = (pagina - 1) * estudiantesPorPagina;
+    const fin = inicio + estudiantesPorPagina;
+    const estudiantesPagina = estudiantesTotales.slice(inicio, fin);
+
+    tbody.innerHTML = estudiantesPagina.map(e => {
+        let botones = '';
+
+        if (e.estado === 'Pendiente' || e.estado === 'En Curso') {
+            botones += `<button class="action-btn aprobar-btn" data-id="${e.id}"><i class="fas fa-check"></i> Aprobar</button>`;
+        }
+        if (e.estado !== 'Cursado') {
+            botones += `<button class="action-btn cursado-btn" data-id="${e.id}"><i class="fas fa-book"></i> Cursado</button>`;
+        } else {
+            botones += `<button class="action-btn cursado-btn finalizado" disabled><i class="fas fa-book"></i> Cursado</button>`;
+        }
+
+        return `
+        <tr>
+            <td>${e.nombre}</td>
+            <td>${e.email}</td>
+            <td><span class="estado-badge estado-${e.estado.toLowerCase().replace(' ', '-')}">${e.estado}</span></td>
+            <td>${botones}</td>
+        </tr>`;
+    }).join('');
+
+    // Agregar eventos nuevamente
+    document.querySelectorAll('.aprobar-btn').forEach(btn => btn.addEventListener('click', e => {
+        e.stopPropagation();
+        cambiarEstadoEstudiante(btn.dataset.id, 'Aprobado');
+    }));
+    document.querySelectorAll('.cursado-btn').forEach(btn => btn.addEventListener('click', e => {
+        e.stopPropagation();
+        cambiarEstadoEstudiante(btn.dataset.id, 'Cursado');
+    }));
+
+    renderPaginacion(totalPaginas);
+}
+
+async function cambiarEstadoEstudiante(estudianteId, nuevoEstado) {
+    try {
+        if (!selectedMateriaId) return;
+
+        const res = await fetch(`/estudiantes/cambiar-estado/${selectedMateriaId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ userId: estudianteId, estado: nuevoEstado })
+        });
+
+        if (!res.ok) throw new Error();
+
+        // Actualizar el estado localmente para evitar recargar todo
+        estudiantesTotales = estudiantesTotales.map(e => {
+            if (e.id === estudianteId) e.estado = nuevoEstado;
+            return e;
+        });
+
+        showNotification(`Estado cambiado a ${nuevoEstado} correctamente`);
+        renderPagina(paginaActual);
+    } catch (e) {
+        console.error(e);
+        showNotification('Error al cambiar estado', 'error');
+    }
+}
+
+        async function cambiarEstadoEstudiante(estudianteId, nuevoEstado) {
+            try {
+                if (!selectedMateriaId) return;
+
+                const res = await fetch(`/estudiantes/cambiar-estado/${selectedMateriaId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ userId: estudianteId, estado: nuevoEstado })
+                });
+
+                if (!res.ok) throw new Error();
+
+                showNotification(`Estado cambiado a ${nuevoEstado} correctamente`);
+                loadEstudiantes(selectedMateriaId);
+            } catch (e) {
+                console.error(e);
+                showNotification('Error al cambiar estado', 'error');
+            }
+        }
+
+        function filtrarMaterias() {
+            const searchText = document.getElementById('searchMateriaInput').value.toLowerCase();
+            const semester = document.getElementById('semesterFilter').value;
+
+            let filtradas = allMaterias;
+            if (searchText) filtradas = filtradas.filter(m => m.nombre.toLowerCase().includes(searchText) || m.codigo.toLowerCase().includes(searchText));
+            if (semester) filtradas = filtradas.filter(m => m.semestre == semester);
+
+            renderMaterias(filtradas);
+        }
+
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('token');
+            window.location.href = '/login.html';
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUserInfo();
+            loadMaterias();
+            document.getElementById('searchMateriaInput').addEventListener('input', filtrarMaterias);
+            document.getElementById('semesterFilter').addEventListener('change', filtrarMaterias);
+        });
+
+        function renderPaginacion(totalPaginas) {
+    const container = document.getElementById('paginacionEstudiantes');
+    container.innerHTML = '';
+
+    if (totalPaginas <= 1) return; // no mostrar si hay una sola página
+
+    for (let i = 1; i <= totalPaginas; i++) {
+        const btn = document.createElement('button');
+        btn.textContent = i;
+        btn.style.padding = '6px 12px';
+        btn.style.border = '1px solid var(--primary-light)';
+        btn.style.borderRadius = '6px';
+        btn.style.background = (i === paginaActual) ? 'var(--primary-color)' : 'var(--bg-white)';
+        btn.style.color = (i === paginaActual) ? 'white' : 'var(--text-color)';
+        btn.style.cursor = 'pointer';
+
+        btn.addEventListener('click', () => {
+            paginaActual = i;
+            renderPagina(paginaActual);
+        });
+
+        container.appendChild(btn);
+    }
+}
+
+    </script>
+
+</body>
+
+</html>

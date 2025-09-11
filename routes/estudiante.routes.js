@@ -13,7 +13,7 @@ router.put('/cambiar-estado/:id', estudianteController.cambiarEstadoMateria);
 
 router.get('/calendario', authMiddleware, estudianteController.getCalendario);
 router.get('/:id/estudiantes', estudianteController.getEstudiantesPorMateria);
-
+router.post('/importar-aprobadas', estudianteController.importarAprobadas);
 
 
 module.exports = router;

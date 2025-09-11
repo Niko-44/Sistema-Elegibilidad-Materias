@@ -614,7 +614,8 @@
                 <button class="admin-btn" id="createBtn">
                     <i class="fas fa-plus-circle"></i> Crear Nueva Materia
                 </button>
-                <button class="admin-btn"  id="verInscritosBtn" onclick="window.location.href='/estudiantesInscriptos.html'">
+                <button class="admin-btn" id="verInscritosBtn"
+                    onclick="window.location.href='/estudiantesInscriptos.html'">
                     <i class="fas fa-users"></i> Ver estudiantes inscritos
                 </button>
             </div>
@@ -666,6 +667,9 @@
                 onclick="window.location.href='/calendario.html'">
                 <i class="fas fa-calendar-alt"></i> Ver calendario
             </button>
+            <button class="admin-btn" id="importPdfBtn">
+                <i class="fas fa-file-pdf"></i> Importar historial PDF
+            </button>
         </div>
 
     </div>
@@ -673,6 +677,17 @@
     <div id="notification" class="notification"></div>
 
 
+    <!-- Modal para importar PDF -->
+    <div id="pdfModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close" id="closePdfModal">&times;</span>
+            <h3>Importar historial de materias desde PDF</h3>
+            <input type="file" id="pdfInput" accept="application/pdf" />
+            <div id="pdfStatus" style="margin-top:15px;"></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script>
         // Obtener el token del localStorage
         const token = localStorage.getItem('token');
@@ -865,58 +880,58 @@
             }
         }
 
-       // Verificar rol de usuario y mostrar opciones de administrador
-async function checkAdminRole() {
-    if (!token) {
-        showNotification('Debe iniciar sesión para acceder', 'error');
-        setTimeout(() => { window.location.href = '/login'; }, 2000);
-        return;
-    }
+        // Verificar rol de usuario y mostrar opciones de administrador
+        async function checkAdminRole() {
+            if (!token) {
+                showNotification('Debe iniciar sesión para acceder', 'error');
+                setTimeout(() => { window.location.href = '/login'; }, 2000);
+                return;
+            }
 
-    const decodedToken = parseJwt(token);
-    if (!decodedToken) {
-        showNotification('Error de autenticación', 'error');
-        return;
-    }
+            const decodedToken = parseJwt(token);
+            if (!decodedToken) {
+                showNotification('Error de autenticación', 'error');
+                return;
+            }
 
-    userRole = (decodedToken.rol || decodedToken.role || decodedToken.tipo || '').trim().toLowerCase();
-    const nombreUsuario = decodedToken.nombre || decodedToken.name || '';
+            userRole = (decodedToken.rol || decodedToken.role || decodedToken.tipo || '').trim().toLowerCase();
+            const nombreUsuario = decodedToken.nombre || decodedToken.name || '';
 
-    let creditosAprobados = 0;
-    // Solo obtener créditos si NO es admin
-    const adminRoles = ['admin', 'administrador', 'administrator', 'superadmin'];
-    if (!adminRoles.includes(userRole)) {
-        try {
-            const res = await fetch('/estudiantes/creditosAprobados', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const data = await res.json();
-            creditosAprobados = data.creditos || 0;
-        } catch (err) {
-            creditosAprobados = 0;
+            let creditosAprobados = 0;
+            // Solo obtener créditos si NO es admin
+            const adminRoles = ['admin', 'administrador', 'administrator', 'superadmin'];
+            if (!adminRoles.includes(userRole)) {
+                try {
+                    const res = await fetch('/estudiantes/creditosAprobados', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const data = await res.json();
+                    creditosAprobados = data.creditos || 0;
+                } catch (err) {
+                    creditosAprobados = 0;
+                }
+            }
+
+            // Construir texto del usuario
+            let userInfo = `<i class="fas fa-user-circle"></i> ${nombreUsuario ? nombreUsuario + ' - ' : ''}${userRole}`;
+            if (!adminRoles.includes(userRole)) {
+                userInfo += ` <span style="color:white;font-weight:600;">(${creditosAprobados} créditos aprobados)</span>`;
+            }
+            document.getElementById('userRole').innerHTML = userInfo;
+
+            // Mostrar panel admin
+            if (adminRoles.includes(userRole)) {
+                document.getElementById('adminPanel').style.display = 'block';
+            }
+
+            // Mostrar calendario solo a estudiantes
+            if (userRole === 'estudiante') {
+                const btnCalendario = document.getElementById('verCalendarioBtn');
+                if (btnCalendario) btnCalendario.style.display = 'inline-block';
+            }
+
+            checkAdminPermissions();
         }
-    }
-
-    // Construir texto del usuario
-    let userInfo = `<i class="fas fa-user-circle"></i> ${nombreUsuario ? nombreUsuario + ' - ' : ''}${userRole}`;
-    if (!adminRoles.includes(userRole)) {
-        userInfo += ` <span style="color:white;font-weight:600;">(${creditosAprobados} créditos aprobados)</span>`;
-    }
-    document.getElementById('userRole').innerHTML = userInfo;
-
-    // Mostrar panel admin
-    if (adminRoles.includes(userRole)) {
-        document.getElementById('adminPanel').style.display = 'block';
-    }
-
-    // Mostrar calendario solo a estudiantes
-    if (userRole === 'estudiante') {
-        const btnCalendario = document.getElementById('verCalendarioBtn');
-        if (btnCalendario) btnCalendario.style.display = 'inline-block';
-    }
-
-    checkAdminPermissions();
-}
 
         // Funciones Editar / Eliminar
         function editarMateria(id) {
@@ -1016,6 +1031,108 @@ async function checkAdminRole() {
                 }
             });
 
+            // Abrir modal
+            document.getElementById('importPdfBtn').addEventListener('click', function () {
+                document.getElementById('pdfModal').style.display = 'flex';
+            });
+            document.getElementById('closePdfModal').addEventListener('click', function () {
+                document.getElementById('pdfModal').style.display = 'none';
+                document.getElementById('pdfStatus').innerHTML = '';
+                document.getElementById('pdfInput').value = '';
+            });
+
+            // Procesar PDF
+            document.getElementById('pdfInput').addEventListener('change', async function (e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                document.getElementById('pdfStatus').innerHTML = 'Procesando PDF...';
+
+                const reader = new FileReader();
+                reader.onload = async function () {
+                    const typedarray = new Uint8Array(reader.result);
+                    const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                    let materiasPDF = [];
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const textContent = await page.getTextContent();
+                        const text = textContent.items.map(item => item.str).join('\n');
+
+                        // Procesar línea por línea
+                        const lines = text.split('\n');
+                        for (let idx = 0; idx < lines.length; idx++) {
+                            let line = lines[idx].trim();
+
+                            // Solo líneas que empiezan con el código de materia
+                            if (/^[A-Z]{3,}_[A-Z0-9]+/.test(line)) {
+                                // Si la línea siguiente parece continuar el nombre, únela
+                                while (
+                                    idx + 1 < lines.length &&
+                                    !/^\d+\s+[1-6]S/.test(lines[idx + 1]) && // la siguiente línea no empieza con créditos y semestre
+                                    !/^[A-Z]{3,}_[A-Z0-9]+/.test(lines[idx + 1]) // ni con otro código
+                                ) {
+                                    line += ' ' + lines[++idx].trim();
+                                }
+
+                                // Regex para extraer datos
+                                // Ejemplo: INF_MDL1 Matemática Discreta y Lógica 1                           12   1S  B  23-1S  1  CUR  Muy bueno        4,00
+                                const match = line.match(/^([A-Z]{3,}_[A-Z0-9]+)\s+(.+?)\s+(\d+)\s+([1-6]S)/);
+                                if (match) {
+                                    materiasPDF.push({
+                                        codigo: match[1].trim(),
+                                        nombre: match[2].replace(/\s+/g, ' ').trim(),
+                                        creditos: parseInt(match[3], 10),
+                                        semestre: match[4].replace('S', '')
+                                    });
+                                }
+                            }
+                        }
+                    }
+
+                    console.log('Materias extraídas del PDF:', materiasPDF);
+
+                    if (materiasPDF.length === 0) {
+                        document.getElementById('pdfStatus').innerHTML = 'No se encontraron materias en el PDF.';
+                        return;
+                    }
+
+                    // Buscar materias existentes en la base de datos por código
+                    let materiasEncontradas = [];
+                    materiasPDF.forEach(mpdf => {
+                        const materiaBD = allMaterias.find(m => m.codigo === mpdf.codigo);
+                        if (materiaBD) {
+                            materiasEncontradas.push(materiaBD._id);
+                        }
+                    });
+
+                    if (materiasEncontradas.length === 0) {
+                        document.getElementById('pdfStatus').innerHTML = 'No se encontraron materias que coincidan con el sistema.';
+                        return;
+                    }
+
+                    // Enviar al backend para asignar como aprobadas
+                    try {
+                        const res = await fetch('/estudiantes/importar-aprobadas', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${token}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ materias: materiasEncontradas })
+                        });
+                        const data = await res.json();
+                        if (res.ok) {
+                            document.getElementById('pdfStatus').innerHTML = 'Materias importadas exitosamente.';
+                            showNotification('Materias importadas correctamente');
+                            loadMaterias();
+                        } else {
+                            document.getElementById('pdfStatus').innerHTML = data.message || 'Error al importar';
+                        }
+                    } catch (err) {
+                        document.getElementById('pdfStatus').innerHTML = 'Error al importar materias.';
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            });
 
         }
 
@@ -1057,6 +1174,10 @@ async function checkAdminRole() {
             loadMaterias();
             document.getElementById('inscribibleFilter').addEventListener('change', filterMaterias);
         });
+    </script>
+    <script>
+        // Configurar el worker de PDF.js
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     </script>
 </body>
 

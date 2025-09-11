@@ -242,3 +242,32 @@ exports.getEstudiantesPorMateria = async (req, res) => {
         res.status(500).json({ message: 'Error al obtener estudiantes', error: err.message });
     }
 };
+
+exports.importarAprobadas = async (req, res) => {
+    try {
+        const userId = getUserIdFromToken(req);
+        if (!userId) return res.status(401).json({ message: 'Token inválido o no proporcionado' });
+        const { materias } = req.body;
+        if (!Array.isArray(materias) || materias.length === 0) {
+            return res.status(400).json({ message: 'No se enviaron materias' });
+        }
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: 'Usuario no encontrado' });
+
+        let count = 0;
+        for (const materiaId of materias) {
+            // Si ya está, actualiza a 'Aprobado'
+            let matObj = user.materias.find(m => m.materia.toString() === materiaId);
+            if (matObj) {
+                matObj.estado = 'Aprobado';
+            } else {
+                user.materias.push({ materia: materiaId, estado: 'Aprobado' });
+            }
+            count++;
+        }
+        await user.save();
+        res.json({ message: `${count} materias importadas como aprobadas` });
+    } catch (err) {
+        res.status(500).json({ message: 'Error al importar', error: err.message });
+    }
+};

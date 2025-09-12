@@ -30,7 +30,25 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(cookieParser());
 
+
 app.use(express.static(path.join(__dirname, "views")));
+
+// Redirección desde la ruta principal
+app.get('/', (req, res) => {
+  // Si el usuario tiene un token válido, redirige a /inicio, si no, a /login
+  const token = req.cookies.token;
+  if (token) {
+    try {
+      jwt.verify(token, process.env.JWT_SECRET);
+      return res.redirect('/inicio');
+    } catch (err) {
+      // Token inválido
+      return res.redirect('/login');
+    }
+  } else {
+    return res.redirect('/login');
+  }
+});
 
 // Usar las rutas de usuario
 app.use("/users", userRoutes);

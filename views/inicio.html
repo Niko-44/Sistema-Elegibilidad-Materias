@@ -175,6 +175,15 @@
             box-shadow: 0 10px 20px rgba(249, 65, 68, 0.2);
         }
 
+        /*Student Panel*/
+        .student-panel {
+            background: var(--bg-white);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 30px;
+            padding: 25px;
+        }
+
         /* Search and Filters */
         .search-section {
             background: var(--bg-white);
@@ -589,45 +598,44 @@
         }
 
         .drop-zone {
-    border: 2px dashed var(--primary-color);
-    border-radius: var(--border-radius-sm);
-    padding: 40px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    background: var(--bg-light);
-    color: var(--text-light);
-    position: relative;
-}
+            border: 2px dashed var(--primary-color);
+            border-radius: var(--border-radius-sm);
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--bg-light);
+            color: var(--text-light);
+            position: relative;
+        }
 
-.drop-zone:hover {
-    background: var(--primary-light);
-    color: var(--primary-color);
-    transform: translateY(-2px);
-    box-shadow: var(--box-shadow-hover);
-}
+        .drop-zone:hover {
+            background: var(--primary-light);
+            color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: var(--box-shadow-hover);
+        }
 
-.drop-zone i {
-    font-size: 48px;
-    margin-bottom: 15px;
-    color: var(--primary-color);
-}
+        .drop-zone i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
 
-.drop-zone p {
-    font-size: 1.1rem;
-    margin: 0;
-}
+        .drop-zone p {
+            font-size: 1.1rem;
+            margin: 0;
+        }
 
-.drop-zone input[type="file"] {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    cursor: pointer;
-}
-
+        .drop-zone input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
     </style>
 </head>
 
@@ -658,6 +666,27 @@
                 <button class="admin-btn" id="verInscritosBtn"
                     onclick="window.location.href='/estudiantesInscriptos.html'">
                     <i class="fas fa-users"></i> Ver estudiantes inscritos
+                </button>
+            </div>
+        </div>
+
+        <div class="student-panel" style="display: none;" id="studentPanel">
+            <div class="admin-title">
+                <i class="fas fa-book"></i>
+                <h3>Panel</h3>
+            </div>
+            <div class="admin-buttons">
+                <button class="admin-btn" id="verHistorialBtn"
+                    onclick="window.location.href='/historialMateriasEstudiante.html'">
+                    <i class="fas fa-history"></i> Ver historial de materias
+                </button>
+
+                <button class="admin-btn" id="verCalendarioBtn" style="display:none;"
+                    onclick="window.location.href='/calendario.html'">
+                    <i class="fas fa-calendar-alt"></i> Ver calendario
+                </button>
+                <button class="admin-btn" id="importPdfBtn">
+                    <i class="fas fa-file-pdf"></i> Importar historial PDF
                 </button>
             </div>
         </div>
@@ -696,43 +725,26 @@
             </div>
         </div>
 
-
-        <div id="historialContainer" style="margin-top:30px;"></div>
-        <div class="student-buttons" style="margin-top: 20px; display: flex; gap: 15px; flex-wrap: wrap;">
-            <button class="admin-btn" id="verHistorialBtn"
-                onclick="window.location.href='/historialMateriasEstudiante.html'">
-                <i class="fas fa-history"></i> Ver historial de materias
-            </button>
-
-            <button class="admin-btn" id="verCalendarioBtn" style="display:none;"
-                onclick="window.location.href='/calendario.html'">
-                <i class="fas fa-calendar-alt"></i> Ver calendario
-            </button>
-            <button class="admin-btn" id="importPdfBtn">
-                <i class="fas fa-file-pdf"></i> Importar historial PDF
-            </button>
-        </div>
-
     </div>
 
     <div id="notification" class="notification"></div>
 
 
-   <!-- Modal para importar PDF -->
-<div id="pdfModal" class="modal" style="display:none;">
-    <div class="modal-content">
-        <span class="close" id="closePdfModal">&times;</span>
-        <h3 style="margin-bottom:15px;">Importar historial de materias desde PDF</h3>
-        
-        <div id="dropZone" class="drop-zone">
-            <i class="fas fa-file-pdf"></i>
-            <p>Arrastra tu PDF aquí o haz clic para seleccionar</p>
-            <input type="file" id="pdfInput" accept="application/pdf" />
+    <!-- Modal para importar PDF -->
+    <div id="pdfModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close" id="closePdfModal">&times;</span>
+            <h3 style="margin-bottom:15px;">Importar historial de materias desde PDF</h3>
+
+            <div id="dropZone" class="drop-zone">
+                <i class="fas fa-file-pdf"></i>
+                <p>Arrastra tu PDF aquí o haz clic para seleccionar</p>
+                <input type="file" id="pdfInput" accept="application/pdf" />
+            </div>
+
+            <div id="pdfStatus" style="margin-top:15px; text-align:center;"></div>
         </div>
-        
-        <div id="pdfStatus" style="margin-top:15px; text-align:center;"></div>
     </div>
-</div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script>
@@ -974,6 +986,7 @@
             // Mostrar calendario solo a estudiantes
             if (userRole === 'estudiante') {
                 const btnCalendario = document.getElementById('verCalendarioBtn');
+                document.getElementById('studentPanel').style.display = 'block';
                 if (btnCalendario) btnCalendario.style.display = 'inline-block';
             }
 
@@ -1064,15 +1077,7 @@
                     const res = await fetch('/estudiantes/historial', {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
-                    const materias = await res.json();
-                    const container = document.getElementById('historialContainer');
-                    if (!materias.length) {
-                        container.innerHTML = '<p>No te has inscrito a ninguna materia.</p>';
-                        return;
-                    }
-                    container.innerHTML = '<h3>Historial de materias inscritas</h3><ul>' +
-                        materias.map(m => `<li>${m.materia?.nombre || 'Materia eliminada'} - Estado: ${m.estado}</li>`).join('') +
-                        '</ul>';
+
                 } catch (err) {
                     showNotification('No se pudo cargar el historial', 'error');
                 }

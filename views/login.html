@@ -324,7 +324,7 @@
                     <input type="checkbox" id="remember" name="remember">
                     <label for="remember">Recordarme</label>
                 </div>
-                <a href="#" class="forgot-password">¿Olvidaste tu contraseña?</a>
+               
             </div>
 
             <button type="submit" class="login-btn" id="loginButton">
@@ -349,12 +349,7 @@
             const errorAlert = document.getElementById('errorAlert');
             const successAlert = document.getElementById('successAlert');
             
-            // Recordar usuario si la casilla estaba marcada
-            const rememberedEmail = localStorage.getItem('rememberedEmail');
-            if (rememberedEmail) {
-                document.getElementById('email').value = rememberedEmail;
-                document.getElementById('remember').checked = true;
-            }
+           
             
             // Alternar visibilidad de contraseña
             passwordToggle.addEventListener('click', function() {

@@ -1,4 +1,3 @@
-
 #!/bin/bash
 
 # Script para reiniciar tu contenedor Docker "sistema-elegibilidad"
@@ -17,11 +16,11 @@ else
 fi
 
 # 2️⃣ Construir la nueva imagen
-echo "Construyendo la imagen 'comunicable-api'..."
-docker build -t comunicable-api .
+echo "Construyendo la imagen 'sistema-elegibilidad'..."
+docker build -t sistema-elegibilidad .
 
 # 3️⃣ Ejecutar el contenedor en segundo plano
 echo "Ejecutando el contenedor..."
-docker run -d -p 8080:8080 comunicable-api
+docker run -d -p 8080:8080 sistema-elegibilidad
 
 echo "✅ Contenedor reiniciado correctamente."

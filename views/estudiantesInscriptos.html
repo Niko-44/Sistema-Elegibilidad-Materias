@@ -433,61 +433,133 @@
             transform: translateX(0);
         }
 
-        /* Responsive */
+        /* Estilos responsive para la tabla y contenedores */
         @media (max-width: 768px) {
-            .header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 15px;
+            /* Contenedor principal */
+            .app-container {
+                padding: 10px;
             }
 
-            .user-info {
+            /* Ajustes para la tabla */
+            .estudiantes-table {
                 width: 100%;
-                justify-content: space-between;
+                border: 0;
+                display: block;
             }
 
-            .search-container {
-                flex-direction: column;
+            .estudiantes-table thead {
+                display: none;
+                /* Ocultar cabecera en móviles */
             }
 
-            .filter-select {
+            .estudiantes-table tbody {
+                display: block;
+            }
+
+            .estudiantes-table tr {
+                margin-bottom: 1rem;
+                display: block;
+                border: 1px solid var(--primary-light);
+                border-radius: var(--border-radius-sm);
+                background: var(--bg-white);
+                box-shadow: var(--box-shadow);
+            }
+
+            .estudiantes-table td {
+                display: block;
+                text-align: left;
+                padding: 12px 15px;
+                position: relative;
+                border-bottom: 1px solid var(--primary-light);
+                /* Quitar padding-left fijo */
+                padding-left: 15px;
+                /* Agregar padding-top para separar label del contenido */
+                padding-top: 35px;
+            }
+
+            .estudiantes-table td::before {
+                content: attr(data-label);
+                position: absolute;
+                left: 15px;
+                top: 10px;
+                /* Posicionar arriba del contenido */
+                font-weight: 600;
+                color: var(--text-light);
                 width: 100%;
+                /* Ancho completo */
+                font-size: 0.85rem;
             }
 
-            .materia-header,
-            .materia-details {
+            /* Ajustes especiales para la celda de acciones */
+            .estudiantes-table td:last-child {
+                display: flex;
                 flex-direction: column;
                 gap: 10px;
+                padding: 15px;
+                margin-top: 15px;
+                border-top: 1px solid var(--primary-light);
+                /* Ajuste para el título de Acciones */
+                padding-top: 45px;
+                /* Más espacio para el título */
             }
 
-            .estudiantes-table {
+            /* Ajustes para los botones de acción */
+            .action-btn {
+                width: 100%;
+                justify-content: center;
+                padding: 12px;
+                margin: 0;
+                font-size: 0.9rem;
+            }
+
+            /* Ajuste especial para la celda de estado */
+            .estudiantes-table td:nth-child(3) {
                 display: block;
-                overflow-x: auto;
+                /* Cambiar a block */
+                text-align: left;
+            }
+
+            .estado-badge {
+                display: inline-block;
+                margin-top: 5px;
+                /* Espacio entre label y badge */
+                margin-left: 0;
             }
         }
 
-        .action-btn.finalizado {
-            opacity: 0.7;
-            cursor: default;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-        }
+        /* Ajustes adicionales para pantallas muy pequeñas */
+        @media (max-width: 480px) {
+            .estudiantes-table td {
+                padding-top: 30px;
+                /* Ajustar espacio en pantallas más pequeñas */
+            }
 
-        .aprobar-btn.finalizado {
-            background: #2ecc71;
-            /* verde más intenso */
-            color: white;
-        }
+            .estudiantes-table td::before {
+                font-size: 0.8rem;
+            }
 
-        .cursar-btn.finalizado {
-            background: #f1c40f;
-            /* amarillo más intenso */
-            color: white;
-        }
+            .estudiantes-table td:last-child {
+                padding-top: 40px;
+            }
 
-        .cursado-btn.finalizado {
-            background: #3498db;
-            /* azul para cursado */
-            color: white;
+            .action-btn {
+                padding: 10px;
+                font-size: 0.85rem;
+            }
+
+            /* Ajustar espaciado del header */
+            .estudiantes-header {
+                padding: 15px;
+            }
+
+            .estudiantes-title {
+                font-size: 1.1rem;
+                line-height: 1.3;
+            }
+
+            .estudiantes-subtitle {
+                font-size: 0.85rem;
+            }
         }
     </style>
 </head>
@@ -722,10 +794,12 @@
 
                 return `
         <tr>
-            <td>${e.nombre}</td>
-            <td>${e.email}</td>
-            <td><span class="estado-badge estado-${e.estado.toLowerCase().replace(' ', '-')}">${e.estado}</span></td>
-            <td>${botones}</td>
+            <td data-label="Nombre">${e.nombre}</td>
+            <td data-label="Email">${e.email}</td>
+            <td data-label="Estado">
+                <span class="estado-badge estado-${e.estado.toLowerCase().replace(' ', '-')}">${e.estado}</span>
+            </td>
+            <td data-label="Acciones">${botones}</td>
         </tr>`;
             }).join('');
 

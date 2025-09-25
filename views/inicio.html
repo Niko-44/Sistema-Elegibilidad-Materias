@@ -1322,7 +1322,12 @@
 
             // Filtrar por semestre
             if (semesterFilter) {
-                filtered = filtered.filter(m => m.semestre === semesterFilter);
+                filtered = filtered.filter(m => {
+                    // Convertir tanto el filtro como el semestre de la materia a número
+                    const semestreMateria = parseInt(m.semestre);
+                    const semestreFiltro = parseInt(semesterFilter);
+                    return semestreMateria === semestreFiltro;
+                });
             }
 
             // Filtrar inscribibles
@@ -1334,17 +1339,33 @@
             if (sortBy === 'name') {
                 filtered.sort((a, b) => a.nombre.localeCompare(b.nombre));
             } else if (sortBy === 'semester') {
-                filtered.sort((a, b) => a.semestre - b.semestre);
+                filtered.sort((a, b) => {
+                    const semestreA = parseInt(a.semestre);
+                    const semestreB = parseInt(b.semestre);
+                    return semestreA - semestreB;
+                });
             } else if (sortBy === 'credits') {
-                filtered.sort((a, b) => a.creditos - b.creditos);
+                filtered.sort((a, b) => parseInt(a.creditos) - parseInt(b.creditos));
             }
 
             // Actualizar paginación
             filteredMaterias = filtered;
+            
+            // Solo mostrar "No hay materias disponibles" si realmente no hay resultados
+            if (filtered.length === 0) {
+                const container = document.getElementById('materiasContainer');
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-book-open empty-icon"></i>
+                        <p class="empty-text">No hay materias disponibles para los filtros seleccionados</p>
+                    </div>
+                `;
+            } else {
+                // Renderizar materias si hay resultados
+                renderMaterias(filtered);
+            }
+            
             updatePaginationControls();
-
-            // Renderizar materias
-            renderMaterias(filtered);
         }
     </script>
     <script>

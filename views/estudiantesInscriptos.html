@@ -591,13 +591,7 @@
                     <option value="5">Semestre 5</option>
                     <option value="6">Semestre 6</option>
                 </select>
-                <select class="filter-select" id="estadoFilter">
-                    <option value="">Todos los estados</option>
-                    <option value="En Curso">En Curso</option>
-                    <option value="Aprobado">Aprobado</option>
-                    <option value="Cursado">Cursado</option>
-                    <option value="Pendiente">Pendiente</option>
-                </select>
+               
             </div>
         </div>
 
@@ -650,7 +644,7 @@
         let estudiantesPorPagina = 10;
         let paginaActual = 1;
         let estudiantesTotales = [];
-
+       
 
         // Decodificar JWT
         function parseJwt(token) {
@@ -743,7 +737,6 @@
                 if (!res.ok) throw new Error('Error al cargar estudiantes');
                 const data = await res.json();
 
-                // Buscar la materia usando _id
                 const materia = allMaterias.find(m => m._id == materiaId);
                 if (!materia) throw new Error('Materia no encontrada');
 
@@ -751,7 +744,8 @@
                 subtitle.textContent = `Código: ${materia.codigo} | Semestre: ${materia.semestre}`;
 
                 if (data.estudiantes && data.estudiantes.length > 0) {
-                    renderEstudiantes(data.estudiantes);
+                    estudiantesTotales = data.estudiantes;
+                    renderPagina(1);
                     loading.style.display = 'none';
                     table.style.display = 'table';
                 } else {
